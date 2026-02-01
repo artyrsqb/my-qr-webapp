@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>QR Pro Plus</title>
-    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS-JS@master/dist/easy.qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/easy-qrcodejs@4.4.10/dist/easy.qrcode.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -17,7 +17,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
@@ -32,16 +32,13 @@
             box-sizing: border-box;
         }
 
-        h3 { margin-top: 0; text-align: center; }
-
         .group { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--hint-color); }
+        label { display: block; font-size: 13px; margin-bottom: 5px; color: var(--hint-color); }
 
         input[type="text"], select {
-            width: 100%; padding: 12px;
-            border: 1px solid #ddd; background: var(--bg-color);
-            color: var(--text-color); border-radius: 12px; box-sizing: border-box; outline: none;
-            font-size: 16px;
+            width: 100%; padding: 12px; border: 1px solid #ddd; 
+            background: var(--bg-color); color: var(--text-color); 
+            border-radius: 12px; box-sizing: border-box; font-size: 16px;
         }
 
         .row { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -57,52 +54,51 @@
             font-size: 16px; font-weight: 600; cursor: pointer;
         }
 
-        .save-btn {
-            width: 100%; padding: 12px; background: #34c759;
-            color: white; border: none; border-radius: 12px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            margin-top: 15px; display: none;
-        }
-
         #qrcode-container {
             margin-top: 20px; padding: 20px; background: #fff;
             border-radius: 15px; display: none; text-align: center;
         }
 
-        canvas, img { max-width: 100%; height: auto; margin: 0 auto; border-radius: 10px; }
+        #qrcode { margin-bottom: 15px; }
+        #qrcode img, #qrcode canvas { max-width: 100% !important; height: auto !important; margin: 0 auto; border-radius: 8px; }
+
+        .save-btn {
+            width: 100%; padding: 14px; background: #34c759;
+            color: white; border: none; border-radius: 12px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>QR Pro Plus</h3>
+        <h3 style="text-align: center; margin-top: 0;">QR Pro Plus</h3>
         
         <div class="group">
-            <label>Данные (текст или URL)</label>
-            <input type="text" id="qr_input" placeholder="https://example.com">
+            <label>Текст или ссылка</label>
+            <input type="text" id="qr_input" placeholder="Введите данные...">
         </div>
 
         <div class="row">
             <div>
-                <label>Стиль точек</label>
+                <label>Стиль</label>
                 <select id="qr_dot_style">
                     <option value="rect">Квадраты</option>
-                    <option value="rounded">Круглые</option>
+                    <option value="rounded">Точки</option>
                 </select>
             </div>
             <div>
-                <label>Цвет кода</label>
+                <label>Цвет</label>
                 <input type="color" id="qr_color" value="#000000">
             </div>
         </div>
 
         <div class="group">
-            <label>Логотип в центре</label>
+            <label>Логотип</label>
             <select id="qr_logo">
-                <option value="none">Без лого</option>
+                <option value="">Без лого</option>
                 <option value="https://cdn-icons-png.flaticon.com/512/2111/2111646.png">Telegram</option>
                 <option value="https://cdn-icons-png.flaticon.com/512/733/733547.png">Facebook</option>
-                <option value="https://cdn-icons-png.flaticon.com/512/2111/2111463.png">Instagram</option>
             </select>
         </div>
 
@@ -110,15 +106,13 @@
 
         <div id="qrcode-container">
             <div id="qrcode"></div>
-            <button id="download_btn" class="save-btn" onclick="downloadQR()">💾 Скачать PNG</button>
+            <button class="save-btn" onclick="downloadQR()">💾 Сохранить PNG</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-
-        let qrCodeInstance = null;
 
         function generateQR() {
             const text = document.getElementById("qr_input").value;
@@ -127,72 +121,72 @@
             const logoUrl = document.getElementById("qr_logo").value;
             const container = document.getElementById("qrcode-container");
             const qrDiv = document.getElementById("qrcode");
-            const dlBtn = document.getElementById("download_btn");
 
             if (!text.trim()) {
                 tg.showAlert("Введите текст!");
                 return;
             }
 
+            // Полная очистка перед новой генерацией
             qrDiv.innerHTML = "";
             container.style.display = "block";
 
+            // Настройки генератора
             const options = {
                 text: text,
-                width: 600,
-                height: 600,
+                width: 512,
+                height: 512,
                 colorDark: color,
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H,
+                // Дизайн точек
                 dotScale: 0.8,
-                quietZone: 20,
-                // Настройка стиля точек
-                PO: color, // Цвет угловых элементов
-                PI: color, 
-                timing: color,
+                quietZone: 15,
                 // Логотип
-                logo: logoUrl !== "none" ? logoUrl : undefined,
-                logoWidth: 150,
-                logoHeight: 150,
+                logo: logoUrl ? logoUrl : undefined,
+                logoWidth: 120,
+                logoHeight: 120,
                 logoBackgroundColor: '#ffffff',
                 logoBackgroundTransparent: false,
+                // Стиль точек
+                drawer: dotStyle === 'rounded' ? 'svg' : 'canvas'
             };
 
-            // Если выбраны круглые точки, меняем настройки
-            if (dotStyle === "rounded") {
-                options.drawer = 'svg'; // SVG лучше рисует круги
-                options.dotScale = 0.6;
+            // Создаем QR код
+            try {
+                new QRCode(qrDiv, options);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } catch (e) {
+                alert("Ошибка при создании: " + e);
             }
-
-            qrCodeInstance = new QRCode(qrDiv, options);
-
-            setTimeout(() => {
-                dlBtn.style.display = "block";
-            }, 300);
-
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
         function downloadQR() {
-            // Ищем canvas или img внутри блока qrcode
+            // Ищем картинку или канвас внутри блока
             const canvas = document.querySelector("#qrcode canvas");
             const img = document.querySelector("#qrcode img");
+            
             let dataUrl = "";
-
-            if (canvas) {
-                dataUrl = canvas.toDataURL("image/png");
-            } else if (img) {
+            if (img && img.src.startsWith("data")) {
                 dataUrl = img.src;
+            } else if (canvas) {
+                dataUrl = canvas.toDataURL("image/png");
             }
 
-            if (!dataUrl) return tg.showAlert("Ошибка сохранения!");
+            if (!dataUrl) {
+                // Если библиотека еще не отрисовала <img>, берем из canvas вручную
+                const tempCanvas = document.getElementsByTagName('canvas')[0];
+                if (tempCanvas) dataUrl = tempCanvas.toDataURL("image/png");
+            }
 
-            const link = document.createElement("a");
-            link.href = dataUrl;
-            link.download = "pro_qrcode.png";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            if (dataUrl) {
+                const link = document.createElement("a");
+                link.href = dataUrl;
+                link.download = "qrcode_pro.png";
+                link.click();
+            } else {
+                tg.showAlert("Пожалуйста, подождите секунду и попробуйте снова.");
+            }
         }
     </script>
 </body>
