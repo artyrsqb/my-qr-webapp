@@ -30,6 +30,7 @@
             width: 100%; max-width: 350px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             box-sizing: border-box;
+            text-align: center;
         }
 
         input {
@@ -42,32 +43,38 @@
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
         }
 
-        input[type="color"] { width: 40px; height: 40px; padding: 0; border: none; cursor: pointer; }
+        input[type="color"] { width: 45px; height: 45px; border: none; background: none; cursor: pointer; }
 
         .main-btn {
             width: 100%; padding: 16px; background: var(--accent-color);
             color: var(--button-text); border: none; border-radius: 14px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
         }
 
-        /* Контейнер для готового QR-кода */
         #qrcode-container {
-            margin-top: 20px;
-            padding: 15px;
-            background: white;
+            margin-top: 25px;
+            padding: 20px;
+            background: #ffffff;
             border-radius: 12px;
-            display: none; /* Скрыт пока не сгенерирован */
+            display: none;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
 
-        #qrcode img { margin: 0 auto; }
+        #qrcode img { 
+            margin: 0 auto; 
+            display: block; 
+            max-width: 100%; 
+            height: auto;
+            border-radius: 4px;
+        }
 
-        .hint { font-size: 12px; color: var(--hint-color); margin-top: 10px; }
+        .hint { font-size: 13px; color: var(--hint-color); margin-top: 15px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>Генератор QR-кода</h3>
+        <h3>QR Pro Generator</h3>
         
         <input type="text" id="qr_input" placeholder="Введите текст или ссылку">
         
@@ -80,7 +87,7 @@
 
         <div id="qrcode-container">
             <div id="qrcode"></div>
-            <p class="hint">Нажмите и удерживайте код, чтобы сохранить его</p>
+            <p class="hint">☝️ <b>Зажмите пальцем код</b>,<br>чтобы сохранить или переслать его.</p>
         </div>
     </div>
 
@@ -95,25 +102,26 @@
             const qrDiv = document.getElementById("qrcode");
 
             if (!text.trim()) {
-                tg.showAlert("Введите текст!");
+                tg.showAlert("Сначала введите текст!");
                 return;
             }
 
-            // Очищаем старый QR
+            // Очищаем старый результат
             qrDiv.innerHTML = "";
             container.style.display = "block";
 
-            // Генерируем новый
+            // Генерируем QR
+            // Библиотека сама создаст <img> внутри qrDiv через небольшой таймаут
             new QRCode(qrDiv, {
                 text: text,
-                width: 200,
-                height: 200,
+                width: 256,
+                height: 256,
                 colorDark: color,
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            // Вибрация успеха
+            // Вибрация
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
     </script>
