@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>QR Generator</title>
+    <title>QR Pro Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -13,69 +13,114 @@
             --text-color: var(--tg-theme-text-color, #000000);
             --accent-color: var(--tg-theme-button-color, #3390ec);
             --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #999999);
         }
 
         body {
             font-family: -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0; padding: 20px;
+            margin: 0; padding: 15px;
             display: flex; flex-direction: column; align-items: center;
         }
 
         .card {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 20px;
-            width: 100%; max-width: 350px;
+            width: 100%; max-width: 360px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
+            box-sizing: border-box;
         }
 
+        h3 { text-align: center; margin-top: 0; margin-bottom: 20px; }
+
+        /* Вкладки */
+        .tabs { 
+            display: flex; gap: 5px; margin-bottom: 15px; 
+            background: var(--bg-color); padding: 4px; border-radius: 12px; 
+        }
+        .tab { 
+            flex: 1; padding: 10px; border: none; border-radius: 10px; 
+            cursor: pointer; background: none; color: var(--text-color); 
+            font-size: 14px; font-weight: 500; transition: 0.2s;
+        }
+        .tab.active { 
+            background: var(--card-bg); 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+            color: var(--accent-color);
+        }
+
+        /* Поля ввода */
         input {
-            width: 100%; padding: 12px; margin-bottom: 15px;
-            border: 1px solid #ddd; border-radius: 10px;
-            box-sizing: border-box; font-size: 16px;
+            width: 100%; padding: 14px; margin-bottom: 12px;
+            border: 1px solid #ddd; border-radius: 12px;
+            box-sizing: border-box; font-size: 16px; outline: none;
+            background: var(--card-bg); color: var(--text-color);
         }
 
+        #wifi_fields { display: none; flex-direction: column; }
+
+        /* Цвет */
+        .color-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin: 10px 0 20px 0; padding: 0 5px;
+        }
+        input[type="color"] { 
+            width: 44px; height: 44px; padding: 0; border: none; 
+            background: none; cursor: pointer; border-radius: 50%; 
+        }
+
+        /* Кнопки */
         .main-btn {
-            width: 100%; padding: 15px; background: var(--accent-color);
-            color: var(--button-text); border: none; border-radius: 12px;
+            width: 100%; padding: 16px; background: var(--accent-color);
+            color: var(--button-text); border: none; border-radius: 14px;
             font-size: 16px; font-weight: bold; cursor: pointer;
         }
 
-        #qrcode-container {
-            margin-top: 20px;
-            display: none; /* Скрыт до генерации */
-        }
-
-        /* Центрируем сам QR */
-        #qrcode img {
-            margin: 0 auto;
-            border: 10px solid white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
         .save-btn {
-            margin-top: 15px;
-            width: 100%; padding: 12px;
-            background: #28a745; color: white;
-            border: none; border-radius: 10px;
-            font-weight: bold; cursor: pointer;
+            width: 100%; padding: 14px; background: #28a745;
+            color: white; border: none; border-radius: 12px;
+            font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px;
+        }
+
+        /* Результат */
+        #qrcode-container {
+            margin-top: 25px; text-align: center; display: none;
+        }
+        #qrcode img {
+            margin: 0 auto; border: 8px solid #fff; border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 100%;
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>Генератор QR-кода</h3>
+        <h3>QR Pro Generator</h3>
+
+        <div class="tabs">
+            <button id="tab-text" class="tab active" onclick="switchTab('text')">Текст</button>
+            <button id="tab-wifi" class="tab" onclick="switchTab('wifi')">Wi-Fi</button>
+        </div>
+
         <input type="text" id="qr_input" placeholder="Введите текст или ссылку">
-        <button class="main-btn" onclick="generateQR()">Создать код</button>
+
+        <div id="wifi_fields">
+            <input type="text" id="wifi_ssid" placeholder="Имя сети (SSID)">
+            <input type="text" id="wifi_pass" placeholder="Пароль">
+        </div>
+
+        <div class="color-row">
+            <span>Цвет QR-кода:</span>
+            <input type="color" id="qr_color" value="#000000">
+        </div>
+
+        <button class="main-btn" onclick="generateQR()">Создать QR</button>
 
         <div id="qrcode-container">
             <div id="qrcode"></div>
-            <button class="save-btn" onclick="downloadQR()">💾 Сохранить в загрузки</button>
+            <button class="save-btn" onclick="downloadQR()">💾 Сохранить изображение</button>
         </div>
     </div>
 
@@ -83,26 +128,44 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        let currentMode = 'text';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.getElementById('tab-text').classList.toggle('active', mode === 'text');
+            document.getElementById('tab-wifi').classList.toggle('active', mode === 'wifi');
+            
+            document.getElementById('qr_input').style.display = (mode === 'text') ? 'block' : 'none';
+            document.getElementById('wifi_fields').style.display = (mode === 'wifi') ? 'flex' : 'none';
+        }
+
         function generateQR() {
-            const text = document.getElementById("qr_input").value;
+            const color = document.getElementById("qr_color").value;
             const container = document.getElementById("qrcode-container");
             const qrDiv = document.getElementById("qrcode");
+            let finalData = "";
 
-            if (!text.trim()) {
-                tg.showAlert("Пожалуйста, введите текст!");
-                return;
+            if (currentMode === 'text') {
+                finalData = document.getElementById("qr_input").value;
+            } else {
+                const ssid = document.getElementById("wifi_ssid").value;
+                const pass = document.getElementById("wifi_pass").value;
+                if (!ssid.trim()) return tg.showAlert("Введите SSID (имя сети)!");
+                // Формат Wi-Fi: WIFI:S:name;T:WPA;P:password;;
+                finalData = `WIFI:S:${ssid};T:WPA;P:${pass};;`;
             }
 
-            // Очистка и показ контейнера
+            if (!finalData.trim()) return tg.showAlert("Заполните данные!");
+
             qrDiv.innerHTML = "";
             container.style.display = "block";
 
             // Генерация
             new QRCode(qrDiv, {
-                text: text,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
+                text: finalData,
+                width: 512,
+                height: 512,
+                colorDark: color,
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
@@ -111,18 +174,16 @@
         }
 
         function downloadQR() {
-            // Берем картинку, которую создала библиотека
             const img = document.querySelector("#qrcode img");
-            
             if (img && img.src) {
                 const link = document.createElement("a");
                 link.href = img.src;
-                link.download = "my_qrcode.png";
+                link.download = "qrcode.png";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             } else {
-                tg.showAlert("Сначала создайте код!");
+                tg.showAlert("Сначала создайте QR-код!");
             }
         }
     </script>
