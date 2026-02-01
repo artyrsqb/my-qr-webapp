@@ -3,93 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>QR Pro Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>QR Pro Plus</title>
+    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS-JS@master/dist/easy.qrcode.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            --bg-color: var(--tg-theme-secondary-bg-color, #f4f4f7);
             --card-bg: var(--tg-theme-bg-color, #ffffff);
             --text-color: var(--tg-theme-text-color, #000000);
-            --accent-color: var(--tg-theme-button-color, #3390ec);
+            --accent-color: var(--tg-theme-button-color, #0088cc);
             --button-text: var(--tg-theme-button-text-color, #ffffff);
             --hint-color: var(--tg-theme-hint-color, #999999);
         }
 
         body {
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
         }
 
         .card {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 20px;
-            width: 100%; max-width: 350px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 100%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
             box-sizing: border-box;
-            text-align: center;
         }
 
-        input {
-            width: 100%; padding: 14px; margin-bottom: 15px;
-            border: 1px solid var(--bg-color); background: var(--bg-color);
+        h3 { margin-top: 0; text-align: center; }
+
+        .group { margin-bottom: 15px; }
+        label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--hint-color); }
+
+        input[type="text"], select {
+            width: 100%; padding: 12px;
+            border: 1px solid #ddd; background: var(--bg-color);
             color: var(--text-color); border-radius: 12px; box-sizing: border-box; outline: none;
+            font-size: 16px;
         }
 
-        .color-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
-        }
+        .row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .row div { flex: 1; }
 
-        input[type="color"] { width: 45px; height: 45px; border: none; background: none; cursor: pointer; }
+        input[type="color"] {
+            width: 100%; height: 45px; border: 1px solid #ddd; background: none; border-radius: 10px; cursor: pointer;
+        }
 
         .main-btn {
             width: 100%; padding: 16px; background: var(--accent-color);
-            color: var(--button-text); border: none; border-radius: 14px;
+            color: var(--button-text); border: none; border-radius: 15px;
             font-size: 16px; font-weight: 600; cursor: pointer;
         }
 
         .save-btn {
-            width: 100%; padding: 12px; background: #28a745;
-            color: white; border: none; border-radius: 10px;
+            width: 100%; padding: 12px; background: #34c759;
+            color: white; border: none; border-radius: 12px;
             font-size: 14px; font-weight: 600; cursor: pointer;
-            margin-top: 15px; display: none; /* Появится после генерации */
+            margin-top: 15px; display: none;
         }
 
         #qrcode-container {
-            margin-top: 25px;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 12px;
-            display: none;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            margin-top: 20px; padding: 20px; background: #fff;
+            border-radius: 15px; display: none; text-align: center;
         }
 
-        #qrcode img { margin: 0 auto; display: block; max-width: 100%; height: auto; }
-
-        .hint { font-size: 12px; color: var(--hint-color); margin-top: 10px; }
+        canvas, img { max-width: 100%; height: auto; margin: 0 auto; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>QR Pro Generator</h3>
+        <h3>QR Pro Plus</h3>
         
-        <input type="text" id="qr_input" placeholder="Введите текст или ссылку">
-        
-        <div class="color-row">
-            <span>Цвет кода:</span>
-            <input type="color" id="qr_color" value="#000000">
+        <div class="group">
+            <label>Данные (текст или URL)</label>
+            <input type="text" id="qr_input" placeholder="https://example.com">
         </div>
 
-        <button class="main-btn" onclick="generateQR()">Создать QR</button>
+        <div class="row">
+            <div>
+                <label>Стиль точек</label>
+                <select id="qr_dot_style">
+                    <option value="rect">Квадраты</option>
+                    <option value="rounded">Круглые</option>
+                </select>
+            </div>
+            <div>
+                <label>Цвет кода</label>
+                <input type="color" id="qr_color" value="#000000">
+            </div>
+        </div>
+
+        <div class="group">
+            <label>Логотип в центре</label>
+            <select id="qr_logo">
+                <option value="none">Без лого</option>
+                <option value="https://cdn-icons-png.flaticon.com/512/2111/2111646.png">Telegram</option>
+                <option value="https://cdn-icons-png.flaticon.com/512/733/733547.png">Facebook</option>
+                <option value="https://cdn-icons-png.flaticon.com/512/2111/2111463.png">Instagram</option>
+            </select>
+        </div>
+
+        <button class="main-btn" onclick="generateQR()">Сгенерировать</button>
 
         <div id="qrcode-container">
             <div id="qrcode"></div>
-            <button id="download_btn" class="save-btn" onclick="downloadQR()">💾 Сохранить на устройство</button>
-            <p class="hint">Файл сохранится в формате PNG</p>
+            <button id="download_btn" class="save-btn" onclick="downloadQR()">💾 Скачать PNG</button>
         </div>
     </div>
 
@@ -97,9 +118,13 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        let qrCodeInstance = null;
+
         function generateQR() {
             const text = document.getElementById("qr_input").value;
             const color = document.getElementById("qr_color").value;
+            const dotStyle = document.getElementById("qr_dot_style").value;
+            const logoUrl = document.getElementById("qr_logo").value;
             const container = document.getElementById("qrcode-container");
             const qrDiv = document.getElementById("qrcode");
             const dlBtn = document.getElementById("download_btn");
@@ -112,37 +137,62 @@
             qrDiv.innerHTML = "";
             container.style.display = "block";
 
-            new QRCode(qrDiv, {
+            const options = {
                 text: text,
-                width: 512, // Увеличил для высокого качества при сохранении
-                height: 512,
+                width: 600,
+                height: 600,
                 colorDark: color,
                 colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+                correctLevel: QRCode.CorrectLevel.H,
+                dotScale: 0.8,
+                quietZone: 20,
+                // Настройка стиля точек
+                PO: color, // Цвет угловых элементов
+                PI: color, 
+                timing: color,
+                // Логотип
+                logo: logoUrl !== "none" ? logoUrl : undefined,
+                logoWidth: 150,
+                logoHeight: 150,
+                logoBackgroundColor: '#ffffff',
+                logoBackgroundTransparent: false,
+            };
 
-            // Показываем кнопку скачивания через мгновение (нужно время для отрисовки)
+            // Если выбраны круглые точки, меняем настройки
+            if (dotStyle === "rounded") {
+                options.drawer = 'svg'; // SVG лучше рисует круги
+                options.dotScale = 0.6;
+            }
+
+            qrCodeInstance = new QRCode(qrDiv, options);
+
             setTimeout(() => {
                 dlBtn.style.display = "block";
-            }, 100);
+            }, 300);
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
 
         function downloadQR() {
-            // Находим сгенерированную картинку
+            // Ищем canvas или img внутри блока qrcode
+            const canvas = document.querySelector("#qrcode canvas");
             const img = document.querySelector("#qrcode img");
-            if (!img) return tg.showAlert("Сначала создайте код!");
+            let dataUrl = "";
 
-            // Создаем временную ссылку для скачивания
+            if (canvas) {
+                dataUrl = canvas.toDataURL("image/png");
+            } else if (img) {
+                dataUrl = img.src;
+            }
+
+            if (!dataUrl) return tg.showAlert("Ошибка сохранения!");
+
             const link = document.createElement("a");
-            link.href = img.src;
-            link.download = "qrcode.png"; // Имя файла
+            link.href = dataUrl;
+            link.download = "pro_qrcode.png";
             document.body.appendChild(link);
-            link.click(); // Имитируем нажатие
+            link.click();
             document.body.removeChild(link);
-            
-            if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
     </script>
 </body>
