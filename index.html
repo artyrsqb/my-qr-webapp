@@ -1,61 +1,278 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Generator WebApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>QR Pro Generator</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            font-family: sans-serif; text-align: center; padding: 20px; 
-            background-color: var(--tg-theme-bg-color, #fff); 
-            color: var(--tg-theme-text-color, #000); 
+        :root {
+            --bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            --card-bg: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --accent-color: var(--tg-theme-button-color, #3390ec);
+            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #999999);
         }
-        .container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        input { width: 80%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; }
-        .controls { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
-        button { 
-            padding: 12px 24px; 
-            background: var(--tg-theme-button-color, #0088cc); 
-            color: var(--tg-theme-button-text-color, #fff); 
-            border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
         }
+
+        /* Навигация (Табы) */
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 5px;
+            scrollbar-width: none; /* Скрыть скроллбар */
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tab.active {
+            background: var(--accent-color);
+            color: var(--button-text);
+        }
+
+        /* Основной контейнер */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--hint-color);
+            margin-bottom: 6px;
+            margin-left: 4px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--bg-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Выбор цвета */
+        .color-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        input[type="color"] {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        /* Главная кнопка */
+        .main-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-color);
+            color: var(--button-text);
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(51, 144, 236, 0.3);
+        }
+        
+        .main-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Скрытие блоков */
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h3>Генератор QR-кода</h3>
-        <input type="text" id="qr_data" placeholder="Введите текст или ссылку">
-        
-        <div class="controls">
-            <span>Цвет:</span>
+
+    <div class="tabs">
+        <div class="tab active" onclick="setMode('text')">Текст / Ссылка</div>
+        <div class="tab" onclick="setMode('wifi')">Wi-Fi</div>
+        <div class="tab" onclick="setMode('email')">E-mail</div>
+        <div class="tab" onclick="setMode('phone')">Телефон</div>
+    </div>
+
+    <div class="card">
+        <div id="block-text">
+            <div class="form-group">
+                <label>Ссылка или текст</label>
+                <input type="text" id="inp_text" placeholder="https://site.com или Привет">
+            </div>
+        </div>
+
+        <div id="block-wifi" class="hidden">
+            <div class="form-group">
+                <label>Название сети (SSID)</label>
+                <input type="text" id="inp_ssid" placeholder="MyHomeWiFi">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="text" id="inp_pass" placeholder="Password123">
+            </div>
+            <div class="form-group">
+                <label>Тип защиты</label>
+                <select id="inp_enc">
+                    <option value="WPA">WPA/WPA2 (Стандарт)</option>
+                    <option value="WEP">WEP</option>
+                    <option value="nopass">Нет пароля</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="block-email" class="hidden">
+            <div class="form-group">
+                <label>Email получателя</label>
+                <input type="email" id="inp_email" placeholder="mail@example.com">
+            </div>
+            <div class="form-group">
+                <label>Тема письма</label>
+                <input type="text" id="inp_subject" placeholder="Вопрос по заказу">
+            </div>
+        </div>
+
+        <div id="block-phone" class="hidden">
+            <div class="form-group">
+                <label>Номер телефона</label>
+                <input type="tel" id="inp_phone" placeholder="+79001234567">
+            </div>
+        </div>
+
+        <div class="color-wrapper">
+            <span>Цвет QR-кода</span>
             <input type="color" id="qr_color" value="#000000">
         </div>
 
-        <button onclick="sendData()">Создать QR</button>
+        <button class="main-btn" onclick="generate()">Создать QR-код</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.ready();
 
-        function sendData() {
-            const dataInput = document.getElementById("qr_data").value;
-            const colorInput = document.getElementById("qr_color").value;
+        let currentMode = 'text';
 
-            if (dataInput.trim() === "") {
-                tg.showAlert("Введите текст!");
-                return;
+        // Переключение вкладок
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Вибрация при переключении
+            if(tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+
+            // Скрываем все блоки
+            document.querySelectorAll('[id^="block-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+            // Показываем нужный
+            document.getElementById(`block-${mode}`).classList.remove('hidden');
+            
+            // Подсвечиваем активный таб
+            // (В реальном проекте лучше через event.target, но так проще для примера)
+            const tabs = document.querySelectorAll('.tab');
+            if(mode === 'text') tabs[0].classList.add('active');
+            if(mode === 'wifi') tabs[1].classList.add('active');
+            if(mode === 'email') tabs[2].classList.add('active');
+            if(mode === 'phone') tabs[3].classList.add('active');
+        }
+
+        function generate() {
+            let finalData = "";
+            let color = document.getElementById("qr_color").value;
+
+            // Сборка строки в зависимости от типа
+            if (currentMode === 'text') {
+                finalData = document.getElementById('inp_text').value;
+                if(!finalData) return showError("Введите текст!");
             }
             
-            // Собираем данные в строку JSON
+            else if (currentMode === 'wifi') {
+                const ssid = document.getElementById('inp_ssid').value;
+                const pass = document.getElementById('inp_pass').value;
+                const enc = document.getElementById('inp_enc').value;
+                
+                if(!ssid) return showError("Введите название сети!");
+                // Формат WIFI:S:SSID;T:WPA;P:PASSWORD;;
+                finalData = `WIFI:S:${ssid};T:${enc};P:${pass};;`;
+            }
+
+            else if (currentMode === 'email') {
+                const email = document.getElementById('inp_email').value;
+                const subj = document.getElementById('inp_subject').value;
+                if(!email) return showError("Введите Email!");
+                finalData = `mailto:${email}?subject=${encodeURIComponent(subj)}`;
+            }
+
+            else if (currentMode === 'phone') {
+                const phone = document.getElementById('inp_phone').value;
+                if(!phone) return showError("Введите номер!");
+                finalData = `tel:${phone}`;
+            }
+
+            // Успешная вибрация
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+            // Отправка данных
             const payload = JSON.stringify({
-                text: dataInput,
-                color: colorInput
+                text: finalData,
+                color: color
             });
 
-            tg.sendData(payload); 
-            tg.close();
+            tg.sendData(payload);
+        }
+
+        function showError(msg) {
+            // Вибрация ошибки
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            tg.showAlert(msg);
         }
     </script>
 </body>
