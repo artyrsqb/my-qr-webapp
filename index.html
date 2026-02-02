@@ -88,9 +88,16 @@
         #qrcode-container {
             margin-top: 25px; text-align: center; display: none;
         }
-        #qrcode img {
+        #qrcode canvas {
             margin: 0 auto; border: 8px solid #fff; border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 100%;
+        }
+        
+        .hint-text {
+            font-size: 12px;
+            color: var(--hint-color);
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -121,6 +128,7 @@
         <div id="qrcode-container">
             <div id="qrcode"></div>
             <button class="save-btn" onclick="downloadQR()">💾 Сохранить изображение</button>
+            <p class="hint-text">Нажмите и удерживайте изображение для сохранения</p>
         </div>
     </div>
 
@@ -129,6 +137,7 @@
         tg.expand();
 
         let currentMode = 'text';
+        let qrCodeInstance = null;
 
         function switchTab(mode) {
             currentMode = mode;
@@ -151,7 +160,6 @@
                 const ssid = document.getElementById("wifi_ssid").value;
                 const pass = document.getElementById("wifi_pass").value;
                 if (!ssid.trim()) return tg.showAlert("Введите SSID (имя сети)!");
-                // Формат Wi-Fi: WIFI:S:name;T:WPA;P:password;;
                 finalData = `WIFI:S:${ssid};T:WPA;P:${pass};;`;
             }
 
@@ -160,8 +168,8 @@
             qrDiv.innerHTML = "";
             container.style.display = "block";
 
-            // Генерация
-            new QRCode(qrDiv, {
+            // Генерация QR-кода
+            qrCodeInstance = new QRCode(qrDiv, {
                 text: finalData,
                 width: 512,
                 height: 512,
@@ -174,17 +182,78 @@
         }
 
         function downloadQR() {
-            const img = document.querySelector("#qrcode img");
-            if (img && img.src) {
-                const link = document.createElement("a");
-                link.href = img.src;
-                link.download = "qrcode.png";
+            const canvas = document.querySelector("#qrcode canvas");
+            
+            if (!canvas) {
+                tg.showAlert("Сначала создайте QR-код!");
+                return;
+            }
+
+            try {
+                // Метод 1: Конвертация canvas в blob и скачивание
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        // Fallback метод
+                        fallbackDownload(canvas);
+                        return;
+                    }
+
+                    // Для мобильных устройств
+                    if (navigator.share) {
+                        // Web Share API (работает на мобильных)
+                        const file = new File([blob], "qrcode.png", { type: "image/png" });
+                        navigator.share({
+                            files: [file],
+                            title: 'QR Code',
+                            text: 'Мой QR-код'
+                        }).catch(() => {
+                            // Если share не сработал, пробуем обычное скачивание
+                            downloadBlob(blob);
+                        });
+                    } else {
+                        // Обычное скачивание для десктопа
+                        downloadBlob(blob);
+                    }
+                }, "image/png");
+
+            } catch (error) {
+                console.error("Ошибка сохранения:", error);
+                fallbackDownload(canvas);
+            }
+        }
+
+        function downloadBlob(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "qrcode.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function fallbackDownload(canvas) {
+            // Альтернативный метод - открыть изображение в новой вкладке
+            const dataUrl = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = dataUrl;
+            link.download = "qrcode.png";
+            
+            // Для iOS
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                const newWindow = window.open();
+                newWindow.document.write('<img src="' + dataUrl + '" style="max-width:100%"/>');
+                newWindow.document.write('<p>Нажмите и удерживайте изображение, затем выберите "Сохранить изображение"</p>');
+            } else {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            } else {
-                tg.showAlert("Сначала создайте QR-код!");
             }
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         }
     </script>
 </body>
