@@ -223,13 +223,26 @@
         ctx.drawImage(img, 0, 0);
 
         const format = document.getElementById('format').value;
-        const dataURL = canvas.toDataURL(format);
+        canvas.toBlob(function(blob) {
+          const url = URL.createObjectURL(blob);
 
-        const link = document.getElementById('download');
-        link.href = dataURL;
-        link.download = `converted.${format.split('/')[1]}`;
-        link.textContent = `📥 Скачать ${format.split('/')[1].toUpperCase()}`;
-        link.style.display = 'inline-block';
+          const link = document.getElementById('download');
+          link.href = url;
+          link.download = `converted.${format.split('/')[1]}`;
+          link.textContent = `📥 Скачать ${format.split('/')[1].toUpperCase()}`;
+          link.style.display = 'inline-block';
+
+          // На мобильных устройствах открываем изображение в новой вкладке
+          link.onclick = function(e) {
+            if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+              e.preventDefault(); // Отменяем стандартное поведение
+              window.open(url, '_blank'); // Открываем в новой вкладке
+            } else {
+              // На десктопе продолжаем стандартное поведение
+              return true;
+            }
+          };
+        }, format);
       }
     }, 50);
   }
@@ -237,4 +250,3 @@
 
 </body>
 </html>
-
