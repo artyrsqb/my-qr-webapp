@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Каталог Telegram-приложений</title>
+  <title>Telegram Apps</title>
   <style>
     * {
       margin: 0;
@@ -35,16 +35,10 @@
       align-items: center;
     }
 
-    h1 {
-      font-size: 2.2rem;
-      color: #0088cc;
-      margin-bottom: 15px;
-    }
-
     .search-container {
       width: 100%;
       max-width: 600px;
-      margin: 10px auto;
+      margin: 0 auto 15px;
     }
 
     #search {
@@ -60,7 +54,7 @@
       display: flex;
       justify-content: center;
       gap: 15px;
-      margin: 20px 0;
+      margin: 10px 0;
       flex-wrap: wrap;
     }
 
@@ -81,44 +75,49 @@
     }
 
     .apps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
       padding: 30px;
       max-width: 1200px;
       margin: 0 auto;
     }
 
-    .app-card {
+    .app-item {
       background: white;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
       overflow: hidden;
       transition: transform 0.3s, box-shadow 0.3s;
     }
 
-    .app-card:hover {
-      transform: translateY(-5px);
+    .app-item:hover {
+      transform: translateY(-3px);
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
     }
 
     .app-icon {
-      width: 100%;
-      height: 160px;
+      width: 120px;
+      height: 120px;
       object-fit: cover;
       background: #f0f2f5;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 3rem;
+      flex-shrink: 0;
+      margin: 20px;
     }
 
-    .app-info {
+    .app-details {
+      flex: 1;
       padding: 20px;
     }
 
     .app-title {
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       font-weight: 600;
       margin-bottom: 8px;
       color: #000;
@@ -141,11 +140,10 @@
     }
 
     .app-link {
-      display: block;
-      text-align: center;
+      display: inline-block;
       background: #0088cc;
       color: white;
-      padding: 10px;
+      padding: 10px 20px;
       border-radius: 8px;
       text-decoration: none;
       font-weight: 500;
@@ -154,6 +152,106 @@
 
     .app-link:hover {
       background: #0066aa;
+    }
+
+    /* Модальное окно */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px;
+      background: #0088cc;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-submit {
+      background: #2ecc71;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .form-submit:hover {
+      background: #27ae60;
     }
 
     footer {
@@ -168,7 +266,6 @@
 
 <header>
   <div class="header-content">
-    <h1>Каталог Telegram-приложений</h1>
     <div class="search-container">
       <input type="text" id="search" placeholder="🔍 Поиск приложений..." />
     </div>
@@ -179,6 +276,7 @@
       <button class="category-btn" data-category="education">Образование</button>
       <button class="category-btn" data-category="productivity">Продуктивность</button>
     </div>
+    <button onclick="openAddAppModal()" style="margin-top:15px; padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:8px; cursor:pointer;">➕ Добавить приложение</button>
   </div>
 </header>
 
@@ -188,17 +286,61 @@
   </div>
 </main>
 
+<!-- Модальное окно для добавления приложения -->
+<div class="modal-overlay" id="add-app-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Добавить приложение</h2>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form class="modal-form" id="add-app-form">
+        <div class="form-group">
+          <label for="app-icon">Иконка (эмодзи)</label>
+          <input type="text" id="app-icon" placeholder="например, 🖼️" required />
+        </div>
+        <div class="form-group">
+          <label for="app-title">Название</label>
+          <input type="text" id="app-title" placeholder="например, Конвертер изображений" required />
+        </div>
+        <div class="form-group">
+          <label for="app-category">Категория</label>
+          <select id="app-category" required>
+            <option value="utility">Утилиты</option>
+            <option value="game">Игры</option>
+            <option value="education">Образование</option>
+            <option value="productivity">Продуктивность</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="app-description">Описание</label>
+          <textarea id="app-description" placeholder="Введите описание приложения" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="app-link">Ссылка на приложение</label>
+          <input type="url" id="app-link" placeholder="https://example.com/app" required />
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Пароль администратора</label>
+          <input type="password" id="admin-password" placeholder="Введите пароль" required />
+        </div>
+        <button type="submit" class="form-submit">Добавить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <footer>
-  © 2026 Каталог Telegram-приложений | Все права защищены
+  © 2026 Telegram Apps | Все права защищены
 </footer>
 
 <script>
   // Данные приложений
-  const apps = [
+  let apps = [
     {
       id: 1,
       title: "Конвертер изображений",
-      description: "Конвертируйте изображения между форматами: JPG, PNG, WebP.",
+      description: "Конвертируйте изображения между форматами: JPG, PNG, WebP. Легко и быстро!",
       category: "utility",
       icon: "🖼️",
       link: "https://example.com/image-converter"
@@ -206,58 +348,37 @@
     {
       id: 2,
       title: "Бот-напоминалка",
-      description: "Настраивайте напоминания и задачи через Telegram.",
+      description: "Настраивайте напоминания и задачи через Telegram. Поможет не забыть важное.",
       category: "productivity",
       icon: "⏰",
       link: "https://example.com/reminders"
-    },
-    {
-      id: 3,
-      title: "Игра «Крестики-нолики»",
-      description: "Играйте в крестики-нолики против бота или друзей.",
-      category: "game",
-      icon: "🎮",
-      link: "https://example.com/tictactoe"
-    },
-    {
-      id: 4,
-      title: "Курс по Python",
-      description: "Интерактивные уроки по Python прямо в Telegram.",
-      category: "education",
-      icon: "📚",
-      link: "https://example.com/python-course"
-    },
-    {
-      id: 5,
-      title: "Погода Today",
-      description: "Ежедневная погода в вашем городе.",
-      category: "utility",
-      icon: "🌤️",
-      link: "https://example.com/weather"
     }
   ];
 
   const appsGrid = document.getElementById('apps-grid');
   const searchInput = document.getElementById('search');
   const categoryButtons = document.querySelectorAll('.category-btn');
+  const addAppModal = document.getElementById('add-app-modal');
+  const modalClose = document.querySelector('#add-app-modal .modal-close');
+  const addAppForm = document.getElementById('add-app-form');
 
   let selectedCategory = 'all';
 
   function renderApps(appList) {
     appsGrid.innerHTML = '';
     appList.forEach(app => {
-      const card = document.createElement('div');
-      card.className = 'app-card';
-      card.innerHTML = `
+      const item = document.createElement('div');
+      item.className = 'app-item';
+      item.innerHTML = `
         <div class="app-icon">${app.icon}</div>
-        <div class="app-info">
+        <div class="app-details">
           <h3 class="app-title">${app.title}</h3>
           <span class="app-category">${app.category.charAt(0).toUpperCase() + app.category.slice(1)}</span>
           <p class="app-description">${app.description}</p>
           <a href="${app.link}" target="_blank" class="app-link">Открыть в Telegram</a>
         </div>
       `;
-      appsGrid.appendChild(card);
+      appsGrid.appendChild(item);
     });
   }
 
@@ -271,6 +392,40 @@
     renderApps(filtered);
   }
 
+  function openAddAppModal() {
+    addAppModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAddAppModal() {
+    addAppModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  addAppForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const password = document.getElementById('admin-password').value;
+    if (password !== 'admin123') { // Установите свой пароль
+      alert('Неверный пароль!');
+      return;
+    }
+
+    const newApp = {
+      id: Date.now(), // Уникальный ID
+      icon: document.getElementById('app-icon').value,
+      title: document.getElementById('app-title').value,
+      category: document.getElementById('app-category').value,
+      description: document.getElementById('app-description').value,
+      link: document.getElementById('app-link').value
+    };
+
+    apps.push(newApp);
+    renderApps(apps);
+    addAppForm.reset();
+    closeAddAppModal();
+  });
+
   // Обработчики событий
   searchInput.addEventListener('input', filterApps);
 
@@ -283,9 +438,15 @@
     });
   });
 
+  modalClose.addEventListener('click', closeAddAppModal);
+  addAppModal.addEventListener('click', (e) => {
+    if (e.target === addAppModal) closeAddAppModal();
+  });
+
   // Изначальный рендер
   renderApps(apps);
 </script>
 
 </body>
 </html>
+
