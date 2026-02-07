@@ -7,6 +7,8 @@
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
@@ -133,6 +135,25 @@
             border: 1px solid var(--border); 
             box-shadow: var(--shadow-md); 
             margin-bottom: 24px; 
+            position: relative;
+        }
+        
+        .new-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 60px;
+            height: 60px;
+            background-image: url('data:image/png;base64,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');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         
         .tags-container { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
@@ -224,8 +245,7 @@
         .settings-input-group input { margin-bottom: 0 !important; flex: 1; }
         .add-btn-small { width: 48px !important; height: 48px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 14px !important; flex-shrink: 0; }
 
-        .item-row {
-            position: relative;		
+        .item-row { 
             background: var(--card-bg); 
             padding: 16px 20px; 
             border-radius: 20px; 
@@ -619,17 +639,6 @@
                 transform: translateY(0px) rotate(0deg); 
             }
         }
-		
-		.new-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 42px; /* Размер вашей иконки */
-    height: 42px;
-    z-index: 10;
-    pointer-events: none;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-}
 
     </style>
 </head>
@@ -824,6 +833,15 @@
 </div>
 
 <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeaotCnJ8XGNQ4UT_sBaeg7XMxYGmwInI",
+      authDomain: "my-purchases-1748b.firebaseapp.com",
+      projectId: "my-purchases-1748b",
+      databaseURL: "https://my-purchases-1748b-default-rtdb.europe-west1.firebasedatabase.app",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     const tg = window.Telegram.WebApp;
     tg.ready();
 
@@ -833,129 +851,13 @@
     
     let startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
     const roomId = startParam || myId;
+    const notesRef = db.ref(`shared_notes/${roomId}`);
 
     let currentTab = 'todo';
     let dataCache = { todo: {}, done: {}, tags: {}, categories: {}, templates: {}, shops: {}, recipes: {} };
     let activeNoteId = null;
     let activeRecipeId = null;
-    let lastKnownTimestamp = Date.now();
-
-    // -------- TELEGRAM CLOUD STORAGE --------
-    const CloudStorage = {
-        async setItem(key, value) {
-            return new Promise((resolve, reject) => {
-                tg.CloudStorage.setItem(key, JSON.stringify(value), (error, result) => {
-                    if (error) {
-                        console.error('CloudStorage setItem error:', error);
-                        reject(error);
-                    } else {
-                        resolve(result);
-                    }
-                });
-            });
-        },
-        async getItem(key) {
-            return new Promise((resolve, reject) => {
-                tg.CloudStorage.getItem(key, (error, result) => {
-                    if (error) {
-                        console.error('CloudStorage getItem error:', error);
-                        reject(error);
-                    } else {
-                        resolve(result ? JSON.parse(result) : null);
-                    }
-                });
-            });
-        },
-        async removeItem(key) {
-            return new Promise((resolve, reject) => {
-                tg.CloudStorage.removeItem(key, (error, result) => {
-                    if (error) {
-                        console.error('CloudStorage removeItem error:', error);
-                        reject(error);
-                    } else {
-                        resolve(result);
-                    }
-                });
-            });
-        },
-        async getKeys() {
-            return new Promise((resolve, reject) => {
-                tg.CloudStorage.getKeys((error, result) => {
-                    if (error) {
-                        console.error('CloudStorage getKeys error:', error);
-                        reject(error);
-                    } else {
-                        resolve(result || []);
-                    }
-                });
-            });
-        }
-    };
-
-    // Функции для работы с данными в Cloud Storage
-    async function loadAllData() {
-        try {
-            const [todo, done, tags, categories, templates, shops, recipes] = await Promise.all([
-                CloudStorage.getItem(`${roomId}_todo`),
-                CloudStorage.getItem(`${roomId}_done`),
-                CloudStorage.getItem(`${roomId}_tags`),
-                CloudStorage.getItem(`${roomId}_categories`),
-                CloudStorage.getItem(`${roomId}_templates`),
-                CloudStorage.getItem(`${roomId}_shops`),
-                CloudStorage.getItem(`${roomId}_recipes`)
-            ]);
-
-            dataCache = {
-                todo: todo || {},
-                done: done || {},
-                tags: tags || {},
-                categories: categories || {},
-                templates: templates || {},
-                shops: shops || {},
-                recipes: recipes || {}
-            };
-
-            renderItems();
-            renderQuickTags();
-            updateCategorySelect();
-            renderQuickTemplates();
-            updateShopSelect();
-            renderRecipes();
-        } catch (error) {
-            console.error('Error loading data:', error);
-        }
-    }
-
-    async function saveData(section, data) {
-        try {
-            dataCache[section] = data;
-            await CloudStorage.setItem(`${roomId}_${section}`, data);
-            
-            // Обновляем интерфейс
-            if (section === 'todo' || section === 'done') {
-                renderItems();
-            } else if (section === 'tags') {
-                renderQuickTags();
-                renderManageTags();
-            } else if (section === 'categories') {
-                updateCategorySelect();
-                renderManageCategories();
-            } else if (section === 'templates') {
-                renderQuickTemplates();
-                renderManageTemplates();
-            } else if (section === 'shops') {
-                updateShopSelect();
-                renderManageShops();
-            } else if (section === 'recipes') {
-                renderRecipes();
-            }
-        } catch (error) {
-            console.error('Error saving data:', error);
-        }
-    }
-
-    // Загружаем данные при старте
-    loadAllData();
+    let lastKnownTimestamp = Date.now(); // Для отслеживания новых элементов
 
     // -------- МАСКОТ АВОКАДО --------
     function showNotification(message, type = 'success') {
@@ -1065,6 +967,36 @@
         }
     }
 
+    // Массив для отслеживания новых списков (существует до закрытия приложения)
+    let newListIds = [];
+
+    notesRef.on('value', snap => {
+        const data = snap.val() || {};
+        dataCache = {
+            todo: data.todo || {},
+            done: data.done || {},
+            tags: data.tags || {},
+            categories: data.categories || {},
+            templates: data.templates || {},
+            shops: data.shops || {},
+            recipes: data.recipes || {}
+        };
+        
+        renderItems();
+        renderQuickTags();
+        updateCategorySelect();
+        renderQuickTemplates();
+        updateShopSelect();
+        renderRecipes();
+        
+        if(document.getElementById('tag-modal').style.display === 'flex') {
+            renderManageShops();
+            renderManageCategories();
+            renderManageTags();
+            renderManageTemplates();
+        }
+    });
+
     const area = document.getElementById('item-text');
     area.oninput = function() {
         this.style.height = "auto";
@@ -1105,21 +1037,18 @@
         });
     }
 
-    async function deleteShop(id) {
-        const updatedShops = { ...dataCache.shops };
-        delete updatedShops[id];
-        await saveData('shops', updatedShops);
+    function deleteShop(id) {
+        notesRef.child(`shops/${id}`).remove().then(() => {
+            renderManageShops();
+        });
     }
 
-    async function addNewShop() {
+    function addNewShop() {
         const input = document.getElementById('new-shop-name');
-        const name = input.value.trim();
-        if (name) {
-            const newId = 'shop_' + Date.now();
-            const updatedShops = { ...dataCache.shops, [newId]: { name } };
-            await saveData('shops', updatedShops);
-            input.value = '';
-        }
+        if(input.value.trim()) notesRef.child('shops').push({ name: input.value.trim() }).then(() => { 
+            input.value = ''; 
+            renderManageShops();
+        });
     }
 
     function updateCategorySelect() {
@@ -1141,21 +1070,18 @@
         });
     }
 
-    async function deleteCategory(id) {
-        const updatedCategories = { ...dataCache.categories };
-        delete updatedCategories[id];
-        await saveData('categories', updatedCategories);
+    function deleteCategory(id) {
+        notesRef.child(`categories/${id}`).remove().then(() => {
+            renderManageCategories();
+        });
     }
 
-    async function addNewCategory() {
+    function addNewCategory() {
         const input = document.getElementById('new-cat-name');
-        const name = input.value.trim();
-        if (name) {
-            const newId = 'cat_' + Date.now();
-            const updatedCategories = { ...dataCache.categories, [newId]: { name } };
-            await saveData('categories', updatedCategories);
-            input.value = '';
-        }
+        if(input.value.trim()) notesRef.child('categories').push({ name: input.value.trim() }).then(() => { 
+            input.value = ''; 
+            renderManageCategories();
+        });
     }
 
     function renderQuickTags() {
@@ -1178,21 +1104,18 @@
         });
     }
 
-    async function deleteTag(id) {
-        const updatedTags = { ...dataCache.tags };
-        delete updatedTags[id];
-        await saveData('tags', updatedTags);
+    function deleteTag(id) {
+        notesRef.child(`tags/${id}`).remove().then(() => {
+            renderManageTags();
+        });
     }
 
-    async function addNewTag() {
+    function addNewTag() {
         const input = document.getElementById('new-tag-name');
-        const name = input.value.trim();
-        if (name) {
-            const newId = 'tag_' + Date.now();
-            const updatedTags = { ...dataCache.tags, [newId]: { name } };
-            await saveData('tags', updatedTags);
-            input.value = '';
-        }
+        if(input.value.trim()) notesRef.child('tags').push({ name: input.value.trim() }).then(() => { 
+            input.value = ''; 
+            renderManageTags();
+        });
     }
 
     function renderQuickTemplates() {
@@ -1220,24 +1143,22 @@
         });
     }
 
-    async function deleteTemplate(id) {
-        const updatedTemplates = { ...dataCache.templates };
-        delete updatedTemplates[id];
-        await saveData('templates', updatedTemplates);
+    function deleteTemplate(id) {
+        notesRef.child(`templates/${id}`).remove().then(() => {
+            renderManageTemplates();
+        });
     }
 
-    async function addNewTemplate() {
+    function addNewTemplate() {
         const n = document.getElementById('new-temp-name');
         const t = document.getElementById('new-temp-text');
-        const name = n.value.trim();
-        const text = t.value.trim();
-        if (name && text) {
-            const newId = 'temp_' + Date.now();
-            const updatedTemplates = { ...dataCache.templates, [newId]: { name, text } };
-            await saveData('templates', updatedTemplates);
-            n.value = '';
-            t.value = '';
-            showNotification('Шаблон добавлен', 'success');
+        if(n.value && t.value) {
+            notesRef.child('templates').push({ name: n.value, text: t.value }).then(() => { 
+                n.value = ''; 
+                t.value = ''; 
+                showNotification('Шаблон добавлен', 'success');
+                renderManageTemplates();
+            });
         }
     }
 
@@ -1246,7 +1167,7 @@
         renderManageShops(); renderManageCategories(); renderManageTags(); renderManageTemplates();
     }
 
-    document.getElementById('shop-form').onsubmit = async (e) => {
+    document.getElementById('shop-form').onsubmit = (e) => {
     e.preventDefault();
     let text = area.value.trim();
     if (!text) return;
@@ -1267,20 +1188,17 @@
 
     const items = cleanText.split('\n').map(t => ({ text: t.trim(), checked: false })).filter(t => t.text);
     
-    const newId = 'note_' + Date.now();
-    const updatedTodo = { 
-        ...dataCache.todo, 
-        [newId]: {
-            items, 
-            category: catMatch ? catMatch[1].trim() : document.getElementById('item-category').value, 
-            shop: shopMatch ? shopMatch[1].trim() : document.getElementById('item-shop').value,
-            date: dateMatch ? dateMatch[1].trim() : document.getElementById('buy-date').value,
-            author: myName, 
-            timestamp: Date.now()
-        }
-    };
-    
-    await saveData('todo', updatedTodo);
+    notesRef.child('todo').push({ 
+        items, 
+        category: catMatch ? catMatch[1].trim() : document.getElementById('item-category').value, 
+        shop: shopMatch ? shopMatch[1].trim() : document.getElementById('item-shop').value,
+        date: dateMatch ? dateMatch[1].trim() : document.getElementById('buy-date').value,
+        author: myName, 
+        timestamp: Date.now()
+    }).then((ref) => {
+        // Добавляем ID нового списка в массив
+        newListIds.push(ref.key);
+    });
     
     e.target.reset(); 
     area.style.height = '80px';
@@ -1298,9 +1216,23 @@
             const div = document.createElement('div');
             div.className = 'item-row';
             
-            // Добавляем класс для анимации, если элемент новый (добавлен за последние 3 секунды)
-            const isNew = note.timestamp > lastKnownTimestamp;
+            // Проверяем, является ли список новым
+            const isNew = newListIds.includes(id);
+            
+            // Если список новый, удаляем его из массива через 5 секунд
             if (isNew) {
+                setTimeout(() => {
+                    const index = newListIds.indexOf(id);
+                    if (index > -1) {
+                        newListIds.splice(index, 1);
+                        renderItems(); // Перерисовываем список без бейджа
+                    }
+                }, 5000);
+            }
+            
+            // Добавляем класс для анимации, если элемент новый (добавлен за последние 3 секунды)
+            const isJustAdded = note.timestamp > lastKnownTimestamp;
+            if (isJustAdded) {
                 div.classList.add('new-item');
                 // Убираем класс после завершения анимации
                 setTimeout(() => {
@@ -1310,14 +1242,12 @@
             
             div.onclick = () => openNote(id);
             div.innerHTML = `
-    ${isNew ? '<img src="new.png" class="new-badge">' : ''}
-    <div style="width: 100%;">
-        <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-            <div style="display:flex; align-items:center; gap: 6px;">
-                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${note.category}</div>
-                ${note.shop ? `<span class="shop-badge">${note.shop}</span>` : ""}
-            </div>
-            `;
+                ${isNew ? '<div class="new-badge">NEW</div>' : ''}
+                <div style="width: 100%;">
+                    <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="display:flex; align-items:center; gap: 6px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${note.category}</div>
+                            ${note.shop ? `<span class="shop-badge">${note.shop}</span>` : ""}
                         </div>
                         <div class="row-actions">
                             <button class="btn-copy" onclick="event.stopPropagation(); copyToClipboard('${id}')">
@@ -1415,38 +1345,24 @@
     document.getElementById('modal').style.display = 'flex';
 }
 
-    async function toggleCheck(idx, val) {
-        const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
-        note.items[idx].checked = val;
-        
-        const section = currentTab === 'todo' ? 'todo' : 'done';
-        const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
-        updatedData[activeNoteId] = note;
-        
-        await saveData(section, updatedData);
+    function toggleCheck(idx, val) {
+        const path = `${currentTab}/${activeNoteId}/items/${idx}/checked`;
+        notesRef.child(path).set(val);
     }
 
-    async function moveNote() {
+    function moveNote() {
         const target = currentTab === 'todo' ? 'done' : 'todo';
         const data = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
-        
-        // Добавляем в целевую секцию
-        const newId = 'note_' + Date.now();
-        const updatedTarget = { ...(target === 'todo' ? dataCache.todo : dataCache.done), [newId]: data };
-        await saveData(target, updatedTarget);
-        
-        // Удаляем из текущей секции
-        const updatedCurrent = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
-        delete updatedCurrent[activeNoteId];
-        await saveData(currentTab, updatedCurrent);
-        
-        closeModal(null, 'modal');
-        if (currentTab === 'todo') {
-            showNotification('Список перемещен в архив', 'success');
-            showAd(); // Показываем рекламу при перемещении в архив
-        } else {
-            showNotification('Список восстановлен', 'success');
-        }
+        notesRef.child(target).push(data).then(() => {
+            notesRef.child(`${currentTab}/${activeNoteId}`).remove();
+            closeModal(null, 'modal');
+            if (currentTab === 'todo') {
+                showNotification('Список перемещен в архив', 'success');
+                showAd(); // Показываем рекламу при перемещении в архив
+            } else {
+                showNotification('Список восстановлен', 'success');
+            }
+        });
     }
 
     function switchTab(tab) {
@@ -1488,22 +1404,22 @@
     });
 }
 
-    async function clearArchive() {
-        tg.showConfirm("Очистить архив?", async (ok) => {
+    function clearArchive() {
+        tg.showConfirm("Очистить архив?", (ok) => {
             if (ok) {
-                await saveData('done', {});
-                showNotification('Архив очищен', 'success');
+                notesRef.child('done').remove().then(() => {
+                    showNotification('Архив очищен', 'success');
+                });
             }
         });
     }
 
-    async function deleteNote(id) {
-        tg.showConfirm("Удалить?", async (ok) => {
+    function deleteNote(id) {
+        tg.showConfirm("Удалить?", (ok) => {
             if (ok) {
-                const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
-                delete updatedData[id];
-                await saveData(currentTab, updatedData);
-                showNotification('Список удален', 'success');
+                notesRef.child(`${currentTab}/${id}`).remove().then(() => {
+                    showNotification('Список удален', 'success');
+                });
             }
         });
     }
@@ -1511,7 +1427,7 @@
     function closeModal(e, id) { if(!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
 
     // Рецепты
-    document.getElementById('recipe-form').onsubmit = async (e) => {
+    document.getElementById('recipe-form').onsubmit = (e) => {
         e.preventDefault();
         const name = document.getElementById('recipe-name').value.trim();
         const description = document.getElementById('recipe-description').value.trim();
@@ -1521,19 +1437,13 @@
         
         const ingredientsList = ingredients.split('\n').map(t => t.trim()).filter(t => t);
         
-        const newId = 'recipe_' + Date.now();
-        const updatedRecipes = {
-            ...dataCache.recipes,
-            [newId]: {
-                name,
-                description,
-                ingredients: ingredientsList,
-                author: myName,
-                timestamp: Date.now()
-            }
-        };
-        
-        await saveData('recipes', updatedRecipes);
+        notesRef.child('recipes').push({
+            name,
+            description,
+            ingredients: ingredientsList,
+            author: myName,
+            timestamp: Date.now()
+        });
         
         e.target.reset();
         document.getElementById('recipe-description').style.height = '120px';
@@ -1591,36 +1501,32 @@
         document.getElementById('recipe-modal').style.display = 'flex';
     }
 
-    async function addRecipeToShopping() {
+    function addRecipeToShopping() {
         const recipe = dataCache.recipes[activeRecipeId];
         const items = recipe.ingredients.map(text => ({ text, checked: false }));
         
-        const newId = 'note_' + Date.now();
-        const updatedTodo = {
-            ...dataCache.todo,
-            [newId]: {
-                items,
-                category: "🍎 Продукты",
-                shop: "",
-                author: myName,
-                timestamp: Date.now(),
-                date: ""
-            }
-        };
-        
-        await saveData('todo', updatedTodo);
-        closeModal(null, 'recipe-modal');
-        showNotification(`Продукты из рецепта "${recipe.name}" добавлены в список`, 'success');
-        switchTab('todo');
+        notesRef.child('todo').push({
+            items,
+            category: "🍎 Продукты",
+            shop: "",
+            author: myName,
+            timestamp: Date.now(),
+            date: ""
+        }).then((ref) => {
+            // Добавляем ID нового списка в массив
+            newListIds.push(ref.key);
+            closeModal(null, 'recipe-modal');
+            showNotification(`Продукты из рецепта "${recipe.name}" добавлены в список`, 'success');
+            switchTab('todo');
+        });
     }
 
-    async function deleteRecipe(id) {
-        tg.showConfirm("Удалить рецепт?", async (ok) => {
+    function deleteRecipe(id) {
+        tg.showConfirm("Удалить рецепт?", (ok) => {
             if (ok) {
-                const updatedRecipes = { ...dataCache.recipes };
-                delete updatedRecipes[id];
-                await saveData('recipes', updatedRecipes);
-                showNotification('Рецепт удален', 'success');
+                notesRef.child(`recipes/${id}`).remove().then(() => {
+                    showNotification('Рецепт удален', 'success');
+                });
             }
         });
     }
@@ -1663,7 +1569,7 @@
         Object.keys(dataCache.shops).forEach(id => select.add(new Option(dataCache.shops[id].name, dataCache.shops[id].name)));
     }
 
-    document.getElementById('edit-form').onsubmit = async (e) => {
+    document.getElementById('edit-form').onsubmit = (e) => {
         e.preventDefault();
         
         const text = document.getElementById('edit-items').value.trim();
@@ -1685,13 +1591,10 @@
             timestamp: (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId].timestamp
         };
         
-        const section = currentTab === 'todo' ? 'todo' : 'done';
-        const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
-        updatedData[activeNoteId] = updatedNote;
-        
-        await saveData(section, updatedData);
-        closeModal(null, 'edit-modal');
-        showNotification('Список обновлен', 'success');
+        notesRef.child(`${currentTab}/${activeNoteId}`).set(updatedNote).then(() => {
+            closeModal(null, 'edit-modal');
+            showNotification('Список обновлен', 'success');
+        });
     };
 </script>
 </body>
