@@ -1593,6 +1593,59 @@
             showNotification('Список обновлен', 'success');
         });
     };
+
+	<!-- NEW-подсказка -->
+<div id="new-badge" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  display: none;
+  pointer-events: none;
+">
+  <img src="new-badge.png" alt="NEW" width="120" height="120">
+</div>
+
+<script>
+  // Имитируем событие создания списка (замените на реальный хендлер, когда будет логика)
+  document.addEventListener('DOMContentLoaded', () => {
+    // Пример: при клике на "Создать список" показываем бейдж
+    const createBtn = document.querySelector('button:contains("Создать список")') ||
+                      Array.from(document.querySelectorAll('*')).find(el =>
+                        el.textContent.includes('Создать список') && el.tagName.startsWith('B')
+                      ) || null;
+
+    // Если не найдено — можно повесить на любой элемент с текстом "Создать список"
+    // Для надёжности: используем делегирование по тексту
+    document.body.addEventListener('click', (e) => {
+      if (e.target.textContent.trim() === 'Создать список') {
+        showNewBadge();
+      }
+    });
+
+    function showNewBadge() {
+      const badge = document.getElementById('new-badge');
+      badge.style.display = 'block';
+      // Анимация появления (опционально)
+      badge.style.opacity = '0';
+      setTimeout(() => {
+        badge.style.transition = 'opacity 0.3s ease';
+        badge.style.opacity = '1';
+      }, 10);
+
+      // Скрыть через 3 секунды
+      setTimeout(() => {
+        badge.style.transition = 'opacity 0.5s ease';
+        badge.style.opacity = '0';
+        setTimeout(() => {
+          badge.style.display = 'none';
+        }, 500);
+      }, 3000);
+    }
+  });
+</script>
 </script>
 </body>
 </html>
+
