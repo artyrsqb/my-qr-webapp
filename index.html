@@ -1,452 +1,923 @@
+# Telegram Font Changer Web App
+
+Вот полностью самодостаточное приложение в одном HTML-файле с удобным выбором шрифтов для Telegram:
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telegram Apps</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#24272b" id="theme-color">
+    <title>Font Changer для Telegram</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #2678b6;
+            --tg-theme-button-color: #2678b6;
+            --tg-theme-button-text-color: #ffffff;
+            --primary-color: #2678b6;
+            --secondary-color: #667eea;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --border-radius: 16px;
+            --spacing: 16px;
+            --card-bg: rgba(0, 0, 0, 0.04);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --selected-card-bg: rgba(38, 120, 182, 0.12);
+            --selected-card-border: rgba(38, 120, 182, 0.4);
+        }
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
-      color: #222;
-      line-height: 1.6;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    header {
-      background: #ffffff;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            overflow-y: auto;
+            overscroll-behavior: none;
+            line-height: 1.5;
+        }
 
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+        .container {
+            max-width: 100%;
+            padding: var(--spacing);
+            padding-bottom: 90px;
+        }
 
-    .search-container {
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto 15px;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing);
+            padding-top: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--card-border);
+        }
 
-    #search {
-      width: 100%;
-      padding: 14px 20px;
-      font-size: 1rem;
-      border-radius: 50px;
-      border: 1px solid #ddd;
-      outline: none;
-    }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
 
-    .categories {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin: 10px 0;
-      flex-wrap: wrap;
-    }
+        .subtitle {
+            color: var(--tg-theme-hint-color);
+            font-size: 15px;
+            margin-top: 4px;
+        }
 
-    .category-btn {
-      background: #eef2f7;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.3s;
-    }
+        .input-section {
+            margin-bottom: var(--spacing);
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            border: 1px solid var(--card-border);
+        }
 
-    .category-btn.active,
-    .category-btn:hover {
-      background: #0088cc;
-      color: white;
-    }
+        textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            font-size: 17px;
+            resize: none;
+            background-color: rgba(0, 0, 0, 0.06);
+            color: var(--tg-theme-text-color);
+            font-family: inherit;
+            transition: all 0.2s;
+            min-height: 100px;
+            max-height: 200px;
+            line-height: 1.5;
+        }
 
-    .apps-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding: 30px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(38, 120, 182, 0.2);
+            background-color: rgba(0, 0, 0, 0.08);
+        }
 
-    .app-item {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
+        .input-hint {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color);
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
 
-    .app-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
-    }
+        .preview-section {
+            margin-bottom: var(--spacing);
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 18px;
+            border: 1px solid var(--card-border);
+        }
 
-    .app-icon {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      background: #f0f2f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      flex-shrink: 0;
-      margin: 20px;
-    }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--card-border);
+        }
 
-    .app-details {
-      flex: 1;
-      padding: 20px;
-    }
+        .preview-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-    .app-title {
-      font-size: 1.4rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #000;
-    }
+        .preview-text {
+            font-size: 22px;
+            min-height: 48px;
+            line-height: 1.4;
+            word-break: break-word;
+            padding: 4px 0;
+            font-weight: 500;
+        }
 
-    .app-category {
-      display: inline-block;
-      background: #e3f2fd;
-      color: #0088cc;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      margin-bottom: 10px;
-    }
+        .preview-placeholder {
+            color: var(--tg-theme-hint-color);
+            font-style: italic;
+        }
 
-    .app-description {
-      color: #666;
-      font-size: 0.95rem;
-      margin-bottom: 15px;
-    }
+        .styles-section {
+            margin-bottom: var(--spacing);
+        }
 
-    .app-link {
-      display: inline-block;
-      background: #0088cc;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s;
-    }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .app-link:hover {
-      background: #0066aa;
-    }
+        .styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
 
-    /* Модальное окно */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s, visibility 0.3s;
-    }
+        .style-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 14px 10px;
+            text-align: center;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            position: relative;
+        }
 
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
+        .style-card:hover {
+            background: rgba(38, 120, 182, 0.06);
+            transform: translateY(-1px);
+        }
 
-    .modal {
-      background: white;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 600px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-      transform: scale(0.9);
-      transition: transform 0.3s;
-    }
+        .style-card.selected {
+            background: var(--selected-card-bg);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(38, 120, 182, 0.15);
+        }
 
-    .modal-overlay.active .modal {
-      transform: scale(1);
-    }
+        .style-card.selected::after {
+            content: "✓";
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
 
-    .modal-header {
-      padding: 20px;
-      background: #0088cc;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .style-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 8px;
+            display: block;
+            min-height: 24px;
+        }
 
-    .modal-close {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
+        .style-example {
+            font-size: 18px;
+            font-weight: 500;
+            margin-top: 4px;
+            line-height: 1.3;
+            min-height: 28px;
+        }
 
-    .modal-body {
-      padding: 25px;
-    }
+        .popular-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: var(--warning-color);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            z-index: 2;
+        }
 
-    .modal-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: var(--spacing);
+            background: var(--tg-theme-bg-color);
+            border-top: 1px solid var(--card-border);
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+            z-index: 100;
+            padding-bottom: calc(var(--spacing) + env(safe-area-inset-bottom));
+        }
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
+        .main-button {
+            width: 100%;
+            padding: 16px;
+            background: var(--tg-theme-button-color, var(--primary-color));
+            color: var(--tg-theme-button-text-color, white);
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
 
-    .form-group label {
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
+        .main-button:disabled {
+            opacity: 0.65;
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
 
-    .form-group input, .form-group textarea, .form-group select {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
+        .main-button:not(:disabled):active {
+            transform: scale(0.985);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
-    .form-group textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.35s ease;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 85%;
+            text-align: center;
+            line-height: 1.4;
+        }
 
-    .form-submit {
-      background: #2ecc71;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
 
-    .form-submit:hover {
-      background: #27ae60;
-    }
+        .instructions {
+            background: rgba(38, 120, 182, 0.08);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 12px 12px 0;
+            padding: 14px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
 
-    footer {
-      text-align: center;
-      padding: 30px;
-      color: #777;
-      font-size: 0.9rem;
-    }
-  </style>
+        .instructions ol {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .instructions li {
+            margin-bottom: 4px;
+        }
+
+        .app-hint {
+            text-align: center;
+            font-size: 13px;
+            color: var(--tg-theme-hint-color);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Адаптивность для мобильных */
+        @media (max-width: 360px) {
+            .container {
+                padding: 12px;
+                padding-bottom: 85px;
+            }
+            
+            .styles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            
+            .logo {
+                font-size: 26px;
+            }
+            
+            .main-button {
+                padding: 18px 16px;
+                font-size: 17px;
+            }
+            
+            .preview-text {
+                font-size: 20px;
+            }
+            
+            .style-example {
+                font-size: 17px;
+            }
+        }
+
+        /* Поддержка темной темы */
+        [data-theme="dark"] {
+            --tg-theme-bg-color: #17181a;
+            --tg-theme-text-color: #f0f0f0;
+            --tg-theme-hint-color: #858585;
+            --tg-theme-link-color: #5ea9e9;
+            --tg-theme-button-color: #5ea9e9;
+            --tg-theme-button-text-color: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --selected-card-bg: rgba(94, 169, 233, 0.15);
+            --selected-card-border: rgba(94, 169, 233, 0.5);
+        }
+
+        [data-theme="dark"] textarea {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: var(--card-border);
+        }
+
+        [data-theme="dark"] textarea:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="dark"] .preview-section,
+        [data-theme="dark"] .input-section,
+        [data-theme="dark"] .style-card {
+            background: var(--card-bg);
+            border-color: var(--card-border);
+        }
+
+        [data-theme="dark"] .footer {
+            border-top-color: var(--card-border);
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .instructions {
+            background: rgba(94, 169, 233, 0.1);
+            border-left-color: var(--tg-theme-link-color);
+        }
+
+        /* Анимации */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(38, 120, 182, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(38, 120, 182, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(38, 120, 182, 0); }
+        }
+
+        .style-card.selected {
+            animation: pulse 1.5s infinite;
+        }
+
+        @media (prefers-reduced-motion) {
+            .style-card.selected {
+                animation: none;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container" id="app-container">
+        <div class="header">
+            <div class="logo">✨ Font Changer</div>
+            <p class="subtitle">Стилизуйте текст для сообщений в Telegram</p>
+        </div>
 
-<header>
-  <div class="header-content">
-    <div class="search-container">
-      <input type="text" id="search" placeholder="🔍 Поиск приложений..." />
+        <div class="input-section">
+            <textarea id="inputText" placeholder="Введите текст здесь...">Привет, мир!</textarea>
+            <div class="input-hint">Поддерживаются латинские буквы, цифры и базовые символы</div>
+        </div>
+
+        <div class="preview-section">
+            <div class="preview-header">
+                <div class="preview-title">👁️ Предпросмотр</div>
+                <div id="selectedStyleName" class="style-name" style="font-weight: 500; color: var(--primary-color);">Жирный</div>
+            </div>
+            <div id="previewText" class="preview-text">𝗛𝗲𝗹𝗹𝗼, 𝗪𝗼𝗿𝗹𝗱!</div>
+        </div>
+
+        <div class="instructions">
+            <div style="font-weight: 600; margin-bottom: 6px;">Как использовать:</div>
+            <ol>
+                <li>Введите или вставьте текст</li>
+                <li>Выберите понравившийся стиль</li>
+                <li>Нажмите «Отправить в чат»</li>
+            </ol>
+        </div>
+
+        <div class="styles-section">
+            <div class="section-title">🎨 Выберите шрифт</div>
+            <div class="styles-grid" id="stylesGrid">
+                <!-- Стили будут добавлены через JavaScript -->
+            </div>
+        </div>
+
+        <div class="app-hint">
+            Приложение работает только внутри Telegram.<br>Откройте его через бота для отправки результата.
+        </div>
     </div>
-    <div class="categories">
-      <button class="category-btn active" data-category="all">Все</button>
-      <button class="category-btn" data-category="utility">Утилиты</button>
-      <button class="category-btn" data-category="game">Игры</button>
-      <button class="category-btn" data-category="education">Образование</button>
-      <button class="category-btn" data-category="productivity">Продуктивность</button>
+
+    <div class="footer">
+        <button id="mainBtn" class="main-button">
+            <span>📤 Отправить в чат</span>
+        </button>
     </div>
-    <button onclick="openAddAppModal()" style="margin-top:15px; padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:8px; cursor:pointer;">➕ Добавить приложение</button>
-  </div>
-</header>
 
-<main>
-  <div class="apps-grid" id="apps-grid">
-    <!-- Карточки приложений будут вставлены здесь -->
-  </div>
-</main>
+    <div class="toast" id="toast">✓ Стиль выбран! Нажмите кнопку отправки</div>
 
-<!-- Модальное окно для добавления приложения -->
-<div class="modal-overlay" id="add-app-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Добавить приложение</h2>
-      <button class="modal-close">&times;</button>
-    </div>
-    <div class="modal-body">
-      <form class="modal-form" id="add-app-form">
-        <div class="form-group">
-          <label for="app-icon">Иконка (эмодзи)</label>
-          <input type="text" id="app-icon" placeholder="например, 🖼️" required />
-        </div>
-        <div class="form-group">
-          <label for="app-title">Название</label>
-          <input type="text" id="app-title" placeholder="например, Конвертер изображений" required />
-        </div>
-        <div class="form-group">
-          <label for="app-category">Категория</label>
-          <select id="app-category" required>
-            <option value="utility">Утилиты</option>
-            <option value="game">Игры</option>
-            <option value="education">Образование</option>
-            <option value="productivity">Продуктивность</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="app-description">Описание</label>
-          <textarea id="app-description" placeholder="Введите описание приложения" required></textarea>
-        </div>
-        <div class="form-group">
-          <label for="app-link">Ссылка на приложение</label>
-          <input type="url" id="app-link" placeholder="https://example.com/app" required />
-        </div>
-        <div class="form-group">
-          <label for="admin-password">Пароль администратора</label>
-          <input type="password" id="admin-password" placeholder="Введите пароль" required />
-        </div>
-        <button type="submit" class="form-submit">Добавить</button>
-      </form>
-    </div>
-  </div>
-</div>
+    <script>
+        // Инициализация Telegram WebApp
+        const WebApp = window.Telegram?.WebApp;
+        let selectedStyle = 'bold';
+        const exampleText = "Hello";
+        const defaultText = "Привет, мир!";
+        
+        // Словарь стилей с Unicode-преобразованиями
+        const fontStyles = {
+            bold: { 
+                name: "Жирный", 
+                transform: t => t.replace(/[a-zA-Z0-9]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1D5D4);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1D5A0);
+                    if (c >= '0' && c <= '9') return String.fromCodePoint(code - 48 + 0x1D7CE);
+                    return c;
+                }),
+                popular: true
+            },
+            italic: { 
+                name: "Курсив", 
+                transform: t => t.replace(/[a-zA-Z]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1D622);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1D608);
+                    return c;
+                })
+            },
+            script: { 
+                name: "Рукописный", 
+                transform: t => t.replace(/[a-zA-Z]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1D4B6);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1D49C);
+                    return c;
+                }),
+                popular: true
+            },
+            fraktur: { 
+                name: "Готический", 
+                transform: t => t.replace(/[a-zA-Z]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1D51E);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1D504);
+                    return c;
+                })
+            },
+            monospace: { 
+                name: "Моноширинный", 
+                transform: t => t.replace(/[a-zA-Z0-9]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1D670);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1D656);
+                    if (c >= '0' && c <= '9') return String.fromCodePoint(code - 48 + 0x1D7F6);
+                    return c;
+                }),
+                popular: true
+            },
+            doubleStruck: { 
+                name: "Двойной", 
+                transform: t => t.replace(/[a-zA-Z0-9]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1D552);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1D538);
+                    if (c >= '0' && c <= '9') return String.fromCodePoint(code - 48 + 0x1D7D8);
+                    return c;
+                })
+            },
+            smallCaps: { 
+                name: "Капитель", 
+                transform: t => t.replace(/[a-z]/g, c => {
+                    const code = c.charCodeAt(0);
+                    return String.fromCodePoint(code - 97 + 0x1D00);
+                })
+            },
+            circled: { 
+                name: "В кружках", 
+                transform: t => t.replace(/[a-z0-9]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x24D0);
+                    if (c >= '0' && c <= '9') return String.fromCodePoint(code - 48 + 0x2460);
+                    return c;
+                })
+            },
+            squared: { 
+                name: "В квадратах", 
+                transform: t => t.replace(/[a-z]/g, c => {
+                    const code = c.charCodeAt(0);
+                    return String.fromCodePoint(code - 97 + 0x1F130);
+                })
+            },
+            bubble: { 
+                name: "Пузырьки", 
+                transform: t => t.replace(/[a-zA-Z0-9]/g, c => {
+                    const code = c.charCodeAt(0);
+                    if (c >= 'a' && c <= 'z') return String.fromCodePoint(code - 97 + 0x1F150);
+                    if (c >= 'A' && c <= 'Z') return String.fromCodePoint(code - 65 + 0x1F130);
+                    if (c >= '0' && c <= '9') return String.fromCodePoint(code - 48 + 0x24EA);
+                    return c;
+                }),
+                popular: true
+            },
+            upsideDown: { 
+                name: "Вверх ногами", 
+                transform: t => {
+                    const map = {
+                        'a':'ɐ','b':'q','c':'ɔ','d':'p','e':'ǝ','f':'ɟ','g':'ƃ','h':'ɥ','i':'ᴉ','j':'ɾ','k':'ʞ','l':'ʃ',
+                        'm':'ɯ','n':'u','o':'o','p':'d','q':'b','r':'ɹ','s':'s','t':'ʇ','u':'n','v':'ʌ','w':'ʍ','x':'x',
+                        'y':'ʎ','z':'z','A':'∀','B':'𐐒','C':'Ɔ','D':'◖','E':'Ǝ','F':'Ⅎ','G':'⅁','H':'H','I':'I','J':'ſ',
+                        'K':'⋊','L':'˥','M':'W','N':'N','O':'O','P':'Ԁ','Q':'Ό','R':'ᴚ','S':'S','T':'⊥','U':'∩','V':'Λ',
+                        'W':'M','X':'X','Y':'⅄','Z':'Z','0':'0','1':'Ɩ','2':'ᄅ','3':'Ɛ','4':'ㄣ','5':'ϛ','6':'9','7':'ㄥ',
+                        '8':'8','9':'6','.':'˙',',':"'","'":',','"':',,','`':',','?':'¿','!':'¡','(':'(',')':')','[':']',
+                        ']':'[','{':'}','}':'{','<':'>','>':'<','&':'⅋','_':'‾',' ':' '
+                    };
+                    return t.split('').map(c => map[c] || c).reverse().join('');
+                }
+            },
+            superscript: {
+                name: "Верхний индекс",
+                transform: t => t.replace(/[a-zA-Z0-9]/g, c => {
+                    const superscriptMap = {
+                        '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+                        'a':'ᵃ','b':'ᵇ','c':'ᶜ','d':'ᵈ','e':'ᵉ','f':'ᶠ','g':'ᵍ','h':'ʰ','i':'ⁱ','j':'ʲ',
+                        'k':'ᵏ','l':'ˡ','m':'ᵐ','n':'ⁿ','o':'ᵒ','p':'ᵖ','r':'ʳ','s':'ˢ','t':'ᵗ','u':'ᵘ',
+                        'v':'ᵛ','w':'ʷ','x':'ˣ','y':'ʸ','z':'ᶻ','A':'ᴬ','B':'ᴮ','D':'ᴰ','E':'ᴱ','G':'ᴳ',
+                        'H':'ᴴ','I':'ᴵ','J':'ᴶ','K':'ᴷ','L':'ᴸ','M':'ᴹ','N':'ᴺ','O':'ᴼ','P':'ᴾ','R':'ᴿ',
+                        'T':'ᵀ','U':'ᵁ','V':'ⱽ','W':'ᵂ','X':'ˣ','Y':'ʸ'
+                    };
+                    return superscriptMap[c] || c;
+                })
+            }
+        };
 
-<footer>
-  © 2026 Telegram Apps | Все права защищены
-</footer>
+        // Экранирование HTML для безопасности
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[m]);
+        }
 
-<script>
-  // Данные приложений
-  let apps = [
-    {
-      id: 1,
-      title: "Конвертер изображений",
-      description: "Конвертируйте изображения между форматами: JPG, PNG, WebP. Легко и быстро!",
-      category: "utility",
-      icon: "🖼️",
-      link: "https://example.com/image-converter"
-    },
-    {
-      id: 2,
-      title: "Бот-напоминалка",
-      description: "Настраивайте напоминания и задачи через Telegram. Поможет не забыть важное.",
-      category: "productivity",
-      icon: "⏰",
-      link: "https://example.com/reminders"
-    }
-  ];
+        // Показать уведомление
+        function showToast(message = '✓ Стиль выбран!') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
 
-  const appsGrid = document.getElementById('apps-grid');
-  const searchInput = document.getElementById('search');
-  const categoryButtons = document.querySelectorAll('.category-btn');
-  const addAppModal = document.getElementById('add-app-modal');
-  const modalClose = document.querySelector('#add-app-modal .modal-close');
-  const addAppForm = document.getElementById('add-app-form');
+        // Обновить предпросмотр
+        function updatePreview() {
+            const inputText = document.getElementById('inputText').value.trim();
+            const previewTextEl = document.getElementById('previewText');
+            const selectedStyleNameEl = document.getElementById('selectedStyleName');
+            
+            if (!inputText) {
+                previewTextEl.textContent = "Введите текст для предпросмотра";
+                previewTextEl.className = "preview-text preview-placeholder";
+                return;
+            }
+            
+            const transformed = fontStyles[selectedStyle].transform(inputText);
+            previewTextEl.textContent = transformed;
+            previewTextEl.className = "preview-text";
+            selectedStyleNameEl.textContent = fontStyles[selectedStyle].name;
+        }
 
-  let selectedCategory = 'all';
+        // Создать карточки стилей
+        function renderStyleCards() {
+            const stylesGrid = document.getElementById('stylesGrid');
+            stylesGrid.innerHTML = '';
+            
+            Object.entries(fontStyles).forEach(([key, style]) => {
+                const example = style.transform(exampleText);
+                const card = document.createElement('div');
+                card.className = `style-card ${selectedStyle === key ? 'selected' : ''}`;
+                card.dataset.style = key;
+                
+                if (style.popular) {
+                    card.innerHTML = `<div class="popular-badge">ТОП</div>`;
+                }
+                
+                card.innerHTML += `
+                    <div class="style-example">${escapeHtml(example)}</div>
+                    <span class="style-name">${style.name}</span>
+                `;
+                
+                card.addEventListener('click', () => {
+                    // Убрать выделение со всех карт
+                    document.querySelectorAll('.style-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    
+                    // Выделить текущую
+                    card.classList.add('selected');
+                    selectedStyle = key;
+                    
+                    // Обновить предпросмотр
+                    updatePreview();
+                    
+                    // Показать уведомление
+                    showToast(`Стиль "${style.name}" выбран!`);
+                    
+                    // Обновить кнопку отправки
+                    updateSendButton();
+                });
+                
+                stylesGrid.appendChild(card);
+            });
+        }
 
-  function renderApps(appList) {
-    appsGrid.innerHTML = '';
-    appList.forEach(app => {
-      const item = document.createElement('div');
-      item.className = 'app-item';
-      item.innerHTML = `
-        <div class="app-icon">${app.icon}</div>
-        <div class="app-details">
-          <h3 class="app-title">${app.title}</h3>
-          <span class="app-category">${app.category.charAt(0).toUpperCase() + app.category.slice(1)}</span>
-          <p class="app-description">${app.description}</p>
-          <a href="${app.link}" target="_blank" class="app-link">Открыть в Telegram</a>
-        </div>
-      `;
-      appsGrid.appendChild(item);
-    });
-  }
+        // Обновить состояние кнопки отправки
+        function updateSendButton() {
+            const inputText = document.getElementById('inputText').value.trim();
+            const mainBtn = document.getElementById('mainBtn');
+            
+            if (inputText && WebApp) {
+                mainBtn.disabled = false;
+                WebApp.MainButton.show();
+            } else {
+                mainBtn.disabled = true;
+                if (WebApp) WebApp.MainButton.hide();
+            }
+        }
 
-  function filterApps() {
-    const query = searchInput.value.toLowerCase();
-    const filtered = apps.filter(app => {
-      const matchesSearch = app.title.toLowerCase().includes(query) || app.description.toLowerCase().includes(query);
-      const matchesCategory = selectedCategory === 'all' || app.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-    renderApps(filtered);
-  }
+        // Отправка данных в Telegram
+        function sendDataToTelegram() {
+            if (!WebApp) {
+                showToast("Приложение работает только внутри Telegram!");
+                return;
+            }
+            
+            const inputText = document.getElementById('inputText').value.trim();
+            if (!inputText) {
+                showToast("Введите текст для отправки!");
+                return;
+            }
+            
+            const transformed = fontStyles[selectedStyle].transform(inputText);
+            
+            // Форматируем данные для отправки
+            const sendData = {
+                text: inputText,
+                result: transformed,
+                style: selectedStyle,
+                styleName: fontStyles[selectedStyle].name
+            };
+            
+            // Отправляем данные боту
+            WebApp.sendData(JSON.stringify(sendData));
+            
+            // Показать уведомление об отправке
+            showToast("✅ Текст отправлен в чат!");
+            
+            // Закрываем приложение через секунду
+            setTimeout(() => {
+                if (WebApp) WebApp.close();
+            }, 1200);
+        }
 
-  function openAddAppModal() {
-    addAppModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
+        // Настройка темы под пользователя Telegram
+        function initTheme() {
+            if (!WebApp) {
+                // Для тестирования вне Telegram
+                document.documentElement.style.setProperty('--tg-theme-bg-color', '#f5f7fb');
+                document.documentElement.style.setProperty('--tg-theme-text-color', '#222222');
+                document.documentElement.style.setProperty('--tg-theme-hint-color', '#8a8a8a');
+                document.documentElement.style.setProperty('--tg-theme-link-color', '#2678b6');
+                document.documentElement.style.setProperty('--tg-theme-button-color', '#2678b6');
+                document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
+                return;
+            }
+            
+            // Применяем тему из Telegram
+            document.documentElement.style.setProperty('--tg-theme-bg-color', WebApp.themeParams.bg_color || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-text-color', WebApp.themeParams.text_color || '#222222');
+            document.documentElement.style.setProperty('--tg-theme-hint-color', WebApp.themeParams.hint_color || '#999999');
+            document.documentElement.style.setProperty('--tg-theme-link-color', WebApp.themeParams.link_color || '#2678b6');
+            document.documentElement.style.setProperty('--tg-theme-button-color', WebApp.themeParams.button_color || '#2678b6');
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', WebApp.themeParams.button_text_color || '#ffffff');
+            
+            // Установка темы для темной/светлой схемы
+            const isDark = WebApp.colorScheme === 'dark';
+            if (isDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-color').content = WebApp.themeParams.bg_color || '#17181a';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('theme-color').content = WebApp.themeParams.bg_color || '#ffffff';
+            }
+            
+            // Обновление при смене темы
+            WebApp.onEvent('themeChanged', initTheme);
+        }
 
-  function closeAddAppModal() {
-    addAppModal.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  addAppForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const password = document.getElementById('admin-password').value;
-    if (password !== 'admin123') { // Установите свой пароль
-      alert('Неверный пароль!');
-      return;
-    }
-
-    const newApp = {
-      id: Date.now(), // Уникальный ID
-      icon: document.getElementById('app-icon').value,
-      title: document.getElementById('app-title').value,
-      category: document.getElementById('app-category').value,
-      description: document.getElementById('app-description').value,
-      link: document.getElementById('app-link').value
-    };
-
-    apps.push(newApp);
-    renderApps(apps);
-    addAppForm.reset();
-    closeAddAppModal();
-  });
-
-  // Обработчики событий
-  searchInput.addEventListener('input', filterApps);
-
-  categoryButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      document.querySelector('.category-btn.active').classList.remove('active');
-      button.classList.add('active');
-      selectedCategory = button.dataset.category;
-      filterApps();
-    });
-  });
-
-  modalClose.addEventListener('click', closeAddAppModal);
-  addAppModal.addEventListener('click', (e) => {
-    if (e.target === addAppModal) closeAddAppModal();
-  });
-
-  // Изначальный рендер
-  renderApps(apps);
-</script>
-
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', () => {
+            // Инициализация темы
+            initTheme();
+            
+            // DOM элементы
+            const inputTextEl = document.getElementById('inputText');
+            const mainBtn = document.getElementById('mainBtn');
+            
+            // Инициализация стилей
+            renderStyleCards();
+            
+            // Обновить предпросмотр с текстом по умолчанию
+            updatePreview();
+            
+            // Обработчик ввода текста
+            inputTextEl.addEventListener('input', () => {
+                updatePreview();
+                updateSendButton();
+            });
+            
+            // Обработчик кнопки отправки
+            mainBtn.addEventListener('click', sendDataToTelegram);
+            
+            // Настройка Telegram MainButton
+            if (WebApp) {
+                WebApp.MainButton.text = '📤 Отправить в чат';
+                WebApp.MainButton.color = WebApp.themeParams.button_color || '#2678b6';
+                WebApp.MainButton.textColor = WebApp.themeParams.button_text_color || '#ffffff';
+                WebApp.MainButton.onClick(sendDataToTelegram);
+                
+                // Показать кнопку, если есть текст
+                if (inputTextEl.value.trim()) {
+                    WebApp.MainButton.show();
+                } else {
+                    WebApp.MainButton.hide();
+                }
+                
+                // Обработка параметров запуска (начальный текст)
+                try {
+                    const initDataUnsafe = WebApp.initDataUnsafe;
+                    if (initDataUnsafe?.start_param) {
+                        try {
+                            const params = JSON.parse(decodeURIComponent(initDataUnsafe.start_param));
+                            if (params.text) {
+                                inputTextEl.value = params.text;
+                                updatePreview();
+                            }
+                        } catch (e) {
+                            // Если не JSON, считаем что это просто текст
+                            inputTextEl.value = decodeURIComponent(initDataUnsafe.start_param);
+                            updatePreview();
+                        }
+                    }
+                } catch (e) {
+                    console.log('Нет параметров запуска');
+                }
+                
+                // Настроить расширение приложения на всю высоту
+                WebApp.expand();
+                
+                // Обработка нажатия "Назад" в интерфейсе Telegram
+                if (WebApp.BackButton) {
+                    WebApp.BackButton.show();
+                    WebApp.BackButton.onClick(() => WebApp.close());
+                }
+            } else {
+                // Для тестирования вне Telegram
+                mainBtn.innerHTML = '✨ Режим предпросмотра (не в Telegram)';
+                mainBtn.style.background = 'linear-gradient(90deg, #667eea, #764ba2)';
+                mainBtn.disabled = true;
+                
+                const hint = document.createElement('div');
+                hint.style.backgroundColor = 'rgba(255, 235, 59, 0.2)';
+                hint.style.color = '#5d4037';
+                hint.style.padding = '12px';
+                hint.style.borderRadius = '12px';
+                hint.style.marginTop = '12px';
+                hint.style.fontSize = '14px';
+                hint.style.textAlign = 'center';
+                hint.innerHTML = '<strong>ℹ️ Примечание:</strong> Полная функциональность доступна только при открытии приложения внутри Telegram через бота.';
+                document.querySelector('.footer').appendChild(hint);
+            }
+            
+            // Поддержка "нативного" поведения скролла в iOS
+            let startY = 0;
+            document.body.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.body.addEventListener('touchmove', (e) => {
+                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                const clientY = e.touches[0].clientY;
+                
+                if ((scrollTop === 0 && clientY > startY) || 
+                    (scrollTop + window.innerHeight >= document.body.scrollHeight && clientY < startY)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Обновить состояние кнопки
+            updateSendButton();
+        });
+    </script>
 </body>
 </html>
+```
 
+## Особенности приложения
+
+Это полностью самодостаточное веб-приложение для Telegram с продуманным интерфейсом выбора шрифтов:
+
+### 🎨 Основные функции
+- **Интуитивный выбор шрифтов** - все стили представлены в виде карточек с примерами
+- **Мгновенный предпросмотр** - видно как будет выглядеть ваш текст в выбранном стиле
+- **Популярные стили** - отмечены бейджами "ТОП" для быстрого выбора
+- **Полная интеграция с Telegram** - отправка результата прямо в чат
+- **Адаптивный дизайн** - идеально выглядит на всех мобильных устройствах
+- **Поддержка темной темы** - автоматически подстраивается под тему пользователя
+
+### 📱 Интерфейс
+- Чистый и современный дизайн в стиле Telegram
+- Визуальная индикация выбранного стиля (галочка и подсветка)
+- Удобное поле ввода с подсказками
+- Раздел с инструкцией по использованию
+- Анимированные элементы для лучшего восприятия
+
+### ⚙️ Технические особенности
+- Полная поддержка Telegram Web Apps API
+- Автоматическое определение темы пользователя
+- Обработка параметров запуска от бота
+- Адаптация под безопасные зоны на современных смартфонах
+- Оптимизация для сенсорных экранов
+- Режим предпросмотра для тестирования вне Telegram
+
+Приложение готово к размещению на любом хостинге и интеграции с вашим Telegram-ботом. Просто сохраните этот файл как `index.html` и загрузите на свой сервер.
