@@ -151,6 +151,7 @@
             word-break: break-word;
             padding: 4px 0;
             font-weight: 500;
+            transition: opacity 0.3s;
         }
 
         .preview-placeholder {
@@ -191,6 +192,7 @@
             justify-content: center;
             min-height: 100px;
             position: relative;
+            user-select: none;
         }
 
         .style-card:hover {
@@ -344,6 +346,15 @@
             font-weight: 500;
         }
 
+        .style-applied {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0.7; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         /* Адаптивность для мобильных */
         @media (max-width: 360px) {
             .container {
@@ -428,6 +439,10 @@
             .style-card.selected {
                 animation: none;
             }
+            
+            .style-applied {
+                animation: none;
+            }
         }
     </style>
 </head>
@@ -439,8 +454,8 @@
         </div>
 
         <div class="input-section">
-            <textarea id="inputText" placeholder="Введите текст здесь...">Привет, мир!</textarea>
-            <div class="input-hint">Поддерживаются латинские буквы, цифры и базовые символы</div>
+            <textarea id="inputText" placeholder="Введите текст здесь...">Hello, World!</textarea>
+            <div class="input-hint">❗ Для работы стилей используйте латинские буквы и цифры</div>
         </div>
 
         <div class="preview-section">
@@ -448,15 +463,15 @@
                 <div class="preview-title">👁️ Предпросмотр</div>
                 <div id="selectedStyleName" class="style-name" style="font-weight: 500; color: var(--primary-color);">Жирный</div>
             </div>
-            <div id="previewText" class="preview-text">𝗛𝗲𝗹𝗹𝗼, 𝗪𝗼𝗿𝗹𝗱!</div>
+            <div id="previewText" class="preview-text style-applied">𝗛𝗲𝗹𝗹𝗼, 𝗪𝗼𝗿𝗹𝗱!</div>
         </div>
 
         <div class="instructions">
             <div style="font-weight: 600; margin-bottom: 6px;">Как использовать:</div>
             <ol>
-                <li>Введите или вставьте текст</li>
-                <li>Выберите понравившийся стиль</li>
-                <li>Нажмите «Отправить в чат»</li>
+                <li>Введите текст на <strong>латинице</strong> (A-Z, a-z, 0-9)</li>
+                <li>Выберите понравившийся стиль из списка</li>
+                <li>Нажмите «Отправить в чат» для отправки результата</li>
             </ol>
         </div>
 
@@ -484,8 +499,7 @@
         // Инициализация Telegram WebApp
         const WebApp = window.Telegram?.WebApp;
         let selectedStyle = 'bold';
-        const exampleText = "Hello";
-        const defaultText = "Привет, мир!";
+        const exampleText = "Font";
         
         // Словарь стилей с Unicode-преобразованиями
         const fontStyles = {
@@ -627,11 +641,11 @@
         }
 
         // Показать уведомление
-        function showToast(message = '✓ Стиль выбран!') {
+        function showToast(message = '✓ Стиль выбран!', duration = 2500) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
+            setTimeout(() => toast.classList.remove('show'), duration);
         }
 
         // Обновить предпросмотр
@@ -640,15 +654,26 @@
             const previewTextEl = document.getElementById('previewText');
             const selectedStyleNameEl = document.getElementById('selectedStyleName');
             
+            // Удаляем анимацию, если она была
+            previewTextEl.classList.remove('style-applied');
+            
             if (!inputText) {
                 previewTextEl.textContent = "Введите текст для предпросмотра";
                 previewTextEl.className = "preview-text preview-placeholder";
                 return;
             }
             
+            // Применяем выбранный стиль
             const transformed = fontStyles[selectedStyle].transform(inputText);
             previewTextEl.textContent = transformed;
             previewTextEl.className = "preview-text";
+            
+            // Добавляем анимацию применения стиля
+            setTimeout(() => {
+                previewTextEl.classList.add('style-applied');
+            }, 10);
+            
+            // Обновляем название выбранного стиля
             selectedStyleNameEl.textContent = fontStyles[selectedStyle].name;
         }
 
@@ -703,23 +728,27 @@
             
             if (inputText && WebApp) {
                 mainBtn.disabled = false;
-                WebApp.MainButton.show();
+                if (WebApp?.MainButton) {
+                    WebApp.MainButton.show();
+                }
             } else {
                 mainBtn.disabled = true;
-                if (WebApp) WebApp.MainButton.hide();
+                if (WebApp?.MainButton) {
+                    WebApp.MainButton.hide();
+                }
             }
         }
 
         // Отправка данных в Telegram
         function sendDataToTelegram() {
             if (!WebApp) {
-                showToast("Приложение работает только внутри Telegram!");
+                showToast("Приложение работает только внутри Telegram!", 3000);
                 return;
             }
             
             const inputText = document.getElementById('inputText').value.trim();
             if (!inputText) {
-                showToast("Введите текст для отправки!");
+                showToast("Введите текст для отправки!", 3000);
                 return;
             }
             
@@ -737,7 +766,7 @@
             WebApp.sendData(JSON.stringify(sendData));
             
             // Показать уведомление об отправке
-            showToast("✅ Текст отправлен в чат!");
+            showToast("✅ Текст отправлен в чат!", 1500);
             
             // Закрываем приложение через секунду
             setTimeout(() => {
