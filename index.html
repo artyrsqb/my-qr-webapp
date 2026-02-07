@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Family Shopping</title>
     
@@ -12,7 +13,7 @@
 
     <style>
         :root {
-            /* Текущая тема по умолчанию (светлая) */
+            /* Ð¢ÐµÐºÑƒÑ‰Ð°Ñ Ñ‚ÐµÐ¼Ð° Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ (ÑÐ²ÐµÑ‚Ð»Ð°Ñ) */
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
             --input-bg: #f9fafb;
@@ -32,12 +33,12 @@
             --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
             
-            /* Цвета для рекламы */
+            /* Ð¦Ð²ÐµÑ‚Ð° Ð´Ð»Ñ Ñ€ÐµÐºÐ»Ð°Ð¼Ñ‹ */
             --ad-label-color: #b45309;
             --ad-description-color: #111827;
         }
 
-        /* Тёмная тема – применяется, когда на body есть класс .theme-dark */
+        /* Ð¢Ñ‘Ð¼Ð½Ð°Ñ Ñ‚ÐµÐ¼Ð° â€“ Ð¿Ñ€Ð¸Ð¼ÐµÐ½ÑÐµÑ‚ÑÑ, ÐºÐ¾Ð³Ð´Ð° Ð½Ð° body ÐµÑÑ‚ÑŒ ÐºÐ»Ð°ÑÑ .theme-dark */
         body.theme-dark {
             --bg-color: #18181b;
             --card-bg: #27272a;
@@ -58,7 +59,7 @@
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             
-            /* Цвета для рекламы в тёмной теме */
+            /* Ð¦Ð²ÐµÑ‚Ð° Ð´Ð»Ñ Ñ€ÐµÐºÐ»Ð°Ð¼Ñ‹ Ð² Ñ‚Ñ‘Ð¼Ð½Ð¾Ð¹ Ñ‚ÐµÐ¼Ðµ */
             --ad-label-color: #fbbf24;
             --ad-description-color: #fafafa;
         }
@@ -71,12 +72,12 @@
             font-family: 'Inter', sans-serif;
             color: var(--text-main);
             
-            /* Светлый фон без затемняющего изображения */
+            /* Ð¡Ð²ÐµÑ‚Ð»Ñ‹Ð¹ Ñ„Ð¾Ð½ Ð±ÐµÐ· Ð·Ð°Ñ‚ÐµÐ¼Ð½ÑÑŽÑ‰ÐµÐ³Ð¾ Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ */
             background-color: var(--bg-color);
         }
 
         .header { 
-            display: none; /* Полностью скрываем пустой header */
+            display: none; /* ÐŸÐ¾Ð»Ð½Ð¾ÑÑ‚ÑŒÑŽ ÑÐºÑ€Ñ‹Ð²Ð°ÐµÐ¼ Ð¿ÑƒÑÑ‚Ð¾Ð¹ header */
         }
         .header h3 { font-weight: 800; font-size: 24px; margin: 0; letter-spacing: -0.025em; }
 
@@ -254,7 +255,7 @@
             gap: 12px;
         }
         
-        /* Анимация плавного мигания для новых элементов списка */
+        /* ÐÐ½Ð¸Ð¼Ð°Ñ†Ð¸Ñ Ð¿Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¼Ð¸Ð³Ð°Ð½Ð¸Ñ Ð´Ð»Ñ Ð½Ð¾Ð²Ñ‹Ñ… ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² ÑÐ¿Ð¸ÑÐºÐ° */
         @keyframes gentle-pulse {
             0% { 
                 background-color: var(--primary);
@@ -273,7 +274,7 @@
             }
         }
         
-        /* Темная тема - адаптированные цвета для мигания */
+        /* Ð¢ÐµÐ¼Ð½Ð°Ñ Ñ‚ÐµÐ¼Ð° - Ð°Ð´Ð°Ð¿Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ðµ Ñ†Ð²ÐµÑ‚Ð° Ð´Ð»Ñ Ð¼Ð¸Ð³Ð°Ð½Ð¸Ñ */
         @keyframes gentle-pulse-dark {
             0% { 
                 background-color: rgba(29, 78, 216, 0.5);
@@ -325,7 +326,7 @@
         .icon-del { width: 20px; height: 20px; object-fit: contain; filter: brightness(0) invert(1); }
 
         /* From Uiverse.io by axy1976 */ 
-        /* tooltip settings 👇 */
+        /* tooltip settings ðŸ‘‡ */
         .btn-copy {
           /* button */
           --button-bg: #353434;
@@ -516,7 +517,7 @@
         }
 
         .ad-icon {
-            font-size: 20px; /* Иконка чуть крупнее */
+            font-size: 20px; /* Ð˜ÐºÐ¾Ð½ÐºÐ° Ñ‡ÑƒÑ‚ÑŒ ÐºÑ€ÑƒÐ¿Ð½ÐµÐµ */
             flex-shrink: 0;
         }
 
@@ -524,44 +525,44 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            /* Выравнивает дочерние элементы (label и description) по левому краю */
+            /* Ð’Ñ‹Ñ€Ð°Ð²Ð½Ð¸Ð²Ð°ÐµÑ‚ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ñ‹ (label Ð¸ description) Ð¿Ð¾ Ð»ÐµÐ²Ð¾Ð¼Ñƒ ÐºÑ€Ð°ÑŽ */
             align-items: flex-start; 
             line-height: 1.2;
             overflow: hidden;
-            /* Убираем gap между иконкой и текстом или двигаем весь блок */
+            /* Ð£Ð±Ð¸Ñ€Ð°ÐµÐ¼ gap Ð¼ÐµÐ¶Ð´Ñƒ Ð¸ÐºÐ¾Ð½ÐºÐ¾Ð¹ Ð¸ Ñ‚ÐµÐºÑÑ‚Ð¾Ð¼ Ð¸Ð»Ð¸ Ð´Ð²Ð¸Ð³Ð°ÐµÐ¼ Ð²ÐµÑÑŒ Ð±Ð»Ð¾Ðº */
             margin-left: -2px; 
         }
 
         .ad-label {
             font-size: 9px;
             font-weight: 800;
-            color: #ffffff; /* Белый цвет для видимости */
+            color: #ffffff; /* Ð‘ÐµÐ»Ñ‹Ð¹ Ñ†Ð²ÐµÑ‚ Ð´Ð»Ñ Ð²Ð¸Ð´Ð¸Ð¼Ð¾ÑÑ‚Ð¸ */
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            /* Убираем возможные внешние отступы */
+            /* Ð£Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ð²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ñ‹Ðµ Ð²Ð½ÐµÑˆÐ½Ð¸Ðµ Ð¾Ñ‚ÑÑ‚ÑƒÐ¿Ñ‹ */
             margin: 0;
             padding: 0;
-            text-align: left; /* Гарантируем выравнивание текста внутри строки */
+            text-align: left; /* Ð“Ð°Ñ€Ð°Ð½Ñ‚Ð¸Ñ€ÑƒÐµÐ¼ Ð²Ñ‹Ñ€Ð°Ð²Ð½Ð¸Ð²Ð°Ð½Ð¸Ðµ Ñ‚ÐµÐºÑÑ‚Ð° Ð²Ð½ÑƒÑ‚Ñ€Ð¸ ÑÑ‚Ñ€Ð¾ÐºÐ¸ */
         }
 
         .ad-description {
             font-size: 15px;
             font-weight: 600;
-            color: #ffffff; /* Белый цвет для видимости */
-            /* Настройки для переноса длинного текста */
+            color: #ffffff; /* Ð‘ÐµÐ»Ñ‹Ð¹ Ñ†Ð²ÐµÑ‚ Ð´Ð»Ñ Ð²Ð¸Ð´Ð¸Ð¼Ð¾ÑÑ‚Ð¸ */
+            /* ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð´Ð»Ñ Ð¿ÐµÑ€ÐµÐ½Ð¾ÑÐ° Ð´Ð»Ð¸Ð½Ð½Ð¾Ð³Ð¾ Ñ‚ÐµÐºÑÑ‚Ð° */
             display: -webkit-box;
-            -webkit-line-clamp: 2; /* Максимум 2 строки, затем троеточие (старые движки) */
-            line-clamp: 2;         /* Стандартное свойство */
+            -webkit-line-clamp: 2; /* ÐœÐ°ÐºÑÐ¸Ð¼ÑƒÐ¼ 2 ÑÑ‚Ñ€Ð¾ÐºÐ¸, Ð·Ð°Ñ‚ÐµÐ¼ Ñ‚Ñ€Ð¾ÐµÑ‚Ð¾Ñ‡Ð¸Ðµ (ÑÑ‚Ð°Ñ€Ñ‹Ðµ Ð´Ð²Ð¸Ð¶ÐºÐ¸) */
+            line-clamp: 2;         /* Ð¡Ñ‚Ð°Ð½Ð´Ð°Ñ€Ñ‚Ð½Ð¾Ðµ ÑÐ²Ð¾Ð¹ÑÑ‚Ð²Ð¾ */
             -webkit-box-orient: vertical;
             overflow: hidden;
             word-break: break-word;
         }
 
-        /* --- КОНТЕЙНЕР МАСКОТА --- */
+        /* --- ÐšÐžÐÐ¢Ð•Ð™ÐÐ•Ð  ÐœÐÐ¡ÐšÐžÐ¢Ð --- */
         .mascot-container {
             position: fixed;
             bottom: 20px;
-            right: -300px; /* Спрятан за экраном */
+            right: -300px; /* Ð¡Ð¿Ñ€ÑÑ‚Ð°Ð½ Ð·Ð° ÑÐºÑ€Ð°Ð½Ð¾Ð¼ */
             z-index: 10000;
             display: flex;
             flex-direction: column;
@@ -570,25 +571,25 @@
             pointer-events: none;
         }
 
-        /* Позиция при появлении: сдвинуто правее (right: -10px) */
+        /* ÐŸÐ¾Ð·Ð¸Ñ†Ð¸Ñ Ð¿Ñ€Ð¸ Ð¿Ð¾ÑÐ²Ð»ÐµÐ½Ð¸Ð¸: ÑÐ´Ð²Ð¸Ð½ÑƒÑ‚Ð¾ Ð¿Ñ€Ð°Ð²ÐµÐµ (right: -10px) */
         .mascot-container.show {
             right: -10px; 
         }
 
-        /* --- УМЕНЬШЕННЫЙ БАББЛ --- */
+        /* --- Ð£ÐœÐ•ÐÐ¬Ð¨Ð•ÐÐÐ«Ð™ Ð‘ÐÐ‘Ð‘Ð› --- */
         .mascot-bubble {
             background: #2563eb;
             color: white;
-            font-size: 12px;      /* Уменьшен текст */
+            font-size: 12px;      /* Ð£Ð¼ÐµÐ½ÑŒÑˆÐµÐ½ Ñ‚ÐµÐºÑÑ‚ */
             font-weight: 700;
-            padding: 8px 16px;    /* Уменьшены отступы (размер баббла) */
+            padding: 8px 16px;    /* Ð£Ð¼ÐµÐ½ÑŒÑˆÐµÐ½Ñ‹ Ð¾Ñ‚ÑÑ‚ÑƒÐ¿Ñ‹ (Ñ€Ð°Ð·Ð¼ÐµÑ€ Ð±Ð°Ð±Ð±Ð»Ð°) */
             border-radius: 40px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             position: relative;
             border: 2px solid #1d4ed8;
             
-            margin-right: 25px;   /* Центровка над авокадо */
+            margin-right: 25px;   /* Ð¦ÐµÐ½Ñ‚Ñ€Ð¾Ð²ÐºÐ° Ð½Ð°Ð´ Ð°Ð²Ð¾ÐºÐ°Ð´Ð¾ */
             margin-bottom: -5px;
             z-index: 10;
             
@@ -601,38 +602,38 @@
             transform: scale(1);
         }
 
-        /* Хвостик баббла */
+        /* Ð¥Ð²Ð¾ÑÑ‚Ð¸Ðº Ð±Ð°Ð±Ð±Ð»Ð° */
         .mascot-bubble::after {
             content: '';
             position: absolute;
             bottom: 2px;
             right: 20px;
-            border-width: 8px 8px 0; /* Уменьшен размер хвостика */
+            border-width: 8px 8px 0; /* Ð£Ð¼ÐµÐ½ÑŒÑˆÐµÐ½ Ñ€Ð°Ð·Ð¼ÐµÑ€ Ñ…Ð²Ð¾ÑÑ‚Ð¸ÐºÐ° */
             border-style: solid;
             border-color: #2563eb transparent transparent transparent;
             transform: rotate(-10deg) translateY(100%);
         }
 
-        /* --- УМЕНЬШЕННОЕ И ПОВЕРНУТОЕ АВОКАДО --- */
+        /* --- Ð£ÐœÐ•ÐÐ¬Ð¨Ð•ÐÐÐžÐ• Ð˜ ÐŸÐžÐ’Ð•Ð ÐÐ£Ð¢ÐžÐ• ÐÐ’ÐžÐšÐÐ”Ðž --- */
         .mascot-img {
-            width: 100px;  /* Размер уменьшен */
+            width: 100px;  /* Ð Ð°Ð·Ð¼ÐµÑ€ ÑƒÐ¼ÐµÐ½ÑŒÑˆÐµÐ½ */
             height: auto;
             filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
             z-index: 1;
         }
         
-        /* Анимация с наклоном вправо */
+        /* ÐÐ½Ð¸Ð¼Ð°Ñ†Ð¸Ñ Ñ Ð½Ð°ÐºÐ»Ð¾Ð½Ð¾Ð¼ Ð²Ð¿Ñ€Ð°Ð²Ð¾ */
         .mascot-container.show .mascot-img {
             animation: idleWave 2s ease-in-out infinite alternate;
         }
         
         @keyframes idleWave {
             0% { 
-                /* Поворот на 15 градусов вправо */
+                /* ÐŸÐ¾Ð²Ð¾Ñ€Ð¾Ñ‚ Ð½Ð° 15 Ð³Ñ€Ð°Ð´ÑƒÑÐ¾Ð² Ð²Ð¿Ñ€Ð°Ð²Ð¾ */
                 transform: translateY(0) rotate(-15deg); 
             }
             100% { 
-                /* Качание до 22 градусов вправо */
+                /* ÐšÐ°Ñ‡Ð°Ð½Ð¸Ðµ Ð´Ð¾ 22 Ð³Ñ€Ð°Ð´ÑƒÑÐ¾Ð² Ð²Ð¿Ñ€Ð°Ð²Ð¾ */
                 transform: translateY(0px) rotate(0deg); 
             }
         }
@@ -643,7 +644,7 @@
 
 <div id="mascot-notification" class="mascot-container">
     <div class="mascot-bubble" id="mascot-text">
-        список перемещён в архив
+        ÑÐ¿Ð¸ÑÐ¾Ðº Ð¿ÐµÑ€ÐµÐ¼ÐµÑ‰Ñ‘Ð½ Ð² Ð°Ñ€Ñ…Ð¸Ð²
     </div>
     <img src="avocado.png" class="mascot-img" alt="Avocado">
 </div>
@@ -652,15 +653,15 @@
 </div>
 
 <div class="tabs">
-    <div id="tab-todo" class="tab active" onclick="switchTab('todo')">В СПИСКЕ</div>
-    <div id="tab-done" class="tab" onclick="switchTab('done')">АРХИВ</div>
-    <div id="tab-recipes" class="tab" onclick="switchTab('recipes')">РЕЦЕПТЫ</div>
+    <div id="tab-todo" class="tab active" onclick="switchTab('todo')">Ð’ Ð¡ÐŸÐ˜Ð¡ÐšÐ•</div>
+    <div id="tab-done" class="tab" onclick="switchTab('done')">ÐÐ Ð¥Ð˜Ð’</div>
+    <div id="tab-recipes" class="tab" onclick="switchTab('recipes')">Ð Ð•Ð¦Ð•ÐŸÐ¢Ð«</div>
 </div>
 
 <div class="card" id="input-card">
     <div onclick="toggleInputCard()" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 16px; user-select: none;">
-        <h3 style="margin: 0; font-size: 18px; font-weight: 700;">Создать список</h3>
-        <span id="toggle-icon" style="font-size: 20px; transition: transform 0.3s; transform: rotate(-90deg);">▶</span>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 700;">Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ ÑÐ¿Ð¸ÑÐ¾Ðº</h3>
+        <span id="toggle-icon" style="font-size: 20px; transition: transform 0.3s; transform: rotate(-90deg);">â–¶</span>
     </div>
     
     <div id="input-card-content" style="display: none;">
@@ -669,58 +670,58 @@
     </div>
     
     <div id="template-section" style="display:none; margin-bottom: 20px;">
-        <div class="input-label" style="color: var(--accent-green);">Применить шаблон</div>
+        <div class="input-label" style="color: var(--accent-green);">ÐŸÑ€Ð¸Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ ÑˆÐ°Ð±Ð»Ð¾Ð½</div>
         <div id="quick-templates-list" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:5px; scrollbar-width: none;"></div>
     </div>
 
     <form id="shop-form">
     <div style="display: flex; gap: 12px;">
         <div style="flex: 1;">
-            <div class="input-label">Категория</div>
+            <div class="input-label">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ</div>
             <select id="item-category"></select>
         </div>
         <div style="flex: 1;">
-            <div class="input-label">Дата</div>
+            <div class="input-label">Ð”Ð°Ñ‚Ð°</div>
             <input type="date" id="buy-date">
         </div>
     </div>
     
-    <div class="input-label">Магазин</div>
+    <div class="input-label">ÐœÐ°Ð³Ð°Ð·Ð¸Ð½</div>
     <select id="item-shop"></select>
 
-    <div class="input-label">Товары</div>
-    <textarea id="item-text" placeholder="Например:&#10;Молоко&#10;Хлеб"></textarea>
+    <div class="input-label">Ð¢Ð¾Ð²Ð°Ñ€Ñ‹</div>
+    <textarea id="item-text" placeholder="ÐÐ°Ð¿Ñ€Ð¸Ð¼ÐµÑ€:&#10;ÐœÐ¾Ð»Ð¾ÐºÐ¾&#10;Ð¥Ð»ÐµÐ±"></textarea>
 
     <button type="button" class="main-btn" style="background: var(--accent-green); margin-bottom: 12px; border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="openTagSettings()">
-        <span></span> Настройки
+        <span></span> ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸
     </button>
 
-    <button type="submit" class="main-btn">Добавить в список</button>
+    <button type="submit" class="main-btn">Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº</button>
 </form>
     </div>
 </div>
 
 <div class="card" id="recipe-card" style="display: none;">
     <form id="recipe-form">
-        <div class="input-label">Название рецепта</div>
-        <input type="text" id="recipe-name" placeholder="Например: Борщ">
+        <div class="input-label">ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ Ñ€ÐµÑ†ÐµÐ¿Ñ‚Ð°</div>
+        <input type="text" id="recipe-name" placeholder="ÐÐ°Ð¿Ñ€Ð¸Ð¼ÐµÑ€: Ð‘Ð¾Ñ€Ñ‰">
         
-        <div class="input-label">Описание / Инструкция</div>
-        <textarea id="recipe-description" placeholder="Опишите как готовить..." style="height: 120px;"></textarea>
+        <div class="input-label">ÐžÐ¿Ð¸ÑÐ°Ð½Ð¸Ðµ / Ð˜Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ñ</div>
+        <textarea id="recipe-description" placeholder="ÐžÐ¿Ð¸ÑˆÐ¸Ñ‚Ðµ ÐºÐ°Ðº Ð³Ð¾Ñ‚Ð¾Ð²Ð¸Ñ‚ÑŒ..." style="height: 120px;"></textarea>
         
-        <div class="input-label">Продукты для покупки</div>
-        <textarea id="recipe-ingredients" placeholder="Например:&#10;Свекла 2 шт&#10;Капуста 300г&#10;Морковь 1 шт" style="height: 100px;"></textarea>
+        <div class="input-label">ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹ Ð´Ð»Ñ Ð¿Ð¾ÐºÑƒÐ¿ÐºÐ¸</div>
+        <textarea id="recipe-ingredients" placeholder="ÐÐ°Ð¿Ñ€Ð¸Ð¼ÐµÑ€:&#10;Ð¡Ð²ÐµÐºÐ»Ð° 2 ÑˆÑ‚&#10;ÐšÐ°Ð¿ÑƒÑÑ‚Ð° 300Ð³&#10;ÐœÐ¾Ñ€ÐºÐ¾Ð²ÑŒ 1 ÑˆÑ‚" style="height: 100px;"></textarea>
         
-        <button type="submit" class="main-btn">Сохранить рецепт</button>
+        <button type="submit" class="main-btn">Ð¡Ð¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ Ñ€ÐµÑ†ÐµÐ¿Ñ‚</button>
     </form>
 </div>
 
 <div class="ad-banner-row" id="ad-banner">
     <a href="https://your-link.com" target="_blank" class="ad-banner-block">
-        <span class="ad-icon">🟧</span>
+        <span class="ad-icon">ðŸŸ§</span>
         <div class="ad-text-container">
-            <span class="ad-label">Реклама</span>
-            <span class="ad-description">Тут ваша реклама </span>
+            <span class="ad-label">Ð ÐµÐºÐ»Ð°Ð¼Ð°</span>
+            <span class="ad-description">Ð¢ÑƒÑ‚ Ð²Ð°ÑˆÐ° Ñ€ÐµÐºÐ»Ð°Ð¼Ð° </span>
         </div>
     </a>
 </div>
@@ -730,12 +731,12 @@
 <div id="recipe-list" style="display: none;"></div>
 
 <div id="archive-actions" style="display: none; padding: 0 8px 24px;">
-    <button onclick="clearArchive()" class="main-btn" style="background: var(--danger); box-shadow: none; opacity: 0.9;">🗑️ Очистить весь архив</button>
+    <button onclick="clearArchive()" class="main-btn" style="background: var(--danger); box-shadow: none; opacity: 0.9;">ðŸ—‘ï¸ ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ Ð²ÐµÑÑŒ Ð°Ñ€Ñ…Ð¸Ð²</button>
 </div>
 
 <div id="modal" class="modal" onclick="closeModal(event, 'modal')">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 id="modal-title" style="margin: 0; font-size: 20px;">Состав списка</h3>
+        <h3 id="modal-title" style="margin: 0; font-size: 20px;">Ð¡Ð¾ÑÑ‚Ð°Ð² ÑÐ¿Ð¸ÑÐºÐ°</h3>
         <div id="modal-items-list" style="margin-top: 10px;"></div>
         <div id="modal-actions" style="margin-top:24px;"></div>
     </div>
@@ -743,49 +744,49 @@
 
 <div id="tag-modal" class="modal" onclick="closeModal(event, 'tag-modal')">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 style="font-weight: 800; margin-top: 0; margin-bottom: 24px; font-size: 20px;">Настройки</h3>
+        <h3 style="font-weight: 800; margin-top: 0; margin-bottom: 24px; font-size: 20px;">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</h3>
         
-        <div class="input-label">Тема оформления</div>
+        <div class="input-label">Ð¢ÐµÐ¼Ð° Ð¾Ñ„Ð¾Ñ€Ð¼Ð»ÐµÐ½Ð¸Ñ</div>
         <button type="button" class="theme-toggle" id="theme-toggle-btn" style="width: 100%; justify-content: center; padding: 14px; margin-bottom: 32px;">
-            <span id="theme-toggle-icon">🌞</span>
-            <span id="theme-toggle-text">Светлая</span>
+            <span id="theme-toggle-icon">ðŸŒž</span>
+            <span id="theme-toggle-text">Ð¡Ð²ÐµÑ‚Ð»Ð°Ñ</span>
         </button>
         
         <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
         
-        <div class="input-label">Магазины</div>
+        <div class="input-label">ÐœÐ°Ð³Ð°Ð·Ð¸Ð½Ñ‹</div>
         <div class="settings-input-group">
-            <input type="text" id="new-shop-name" placeholder="Напр: ВкусВилл">
+            <input type="text" id="new-shop-name" placeholder="ÐÐ°Ð¿Ñ€: Ð’ÐºÑƒÑÐ’Ð¸Ð»Ð»">
             <button type="button" onclick="addNewShop()" class="main-btn add-btn-small">+</button>
         </div>
         <div id="manage-shops-list" style="margin-bottom: 32px;"></div>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
 
-        <div class="input-label">Категории</div>
+        <div class="input-label">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¸</div>
         <div class="settings-input-group">
-            <input type="text" id="new-cat-name" placeholder="🛠 Стройка">
+            <input type="text" id="new-cat-name" placeholder="ðŸ›  Ð¡Ñ‚Ñ€Ð¾Ð¹ÐºÐ°">
             <button type="button" onclick="addNewCategory()" class="main-btn add-btn-small">+</button>
         </div>
         <div id="manage-cats-list" style="margin-bottom: 32px;"></div>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
 
-        <div class="input-label">Быстрые теги (товары)</div>
+        <div class="input-label">Ð‘Ñ‹ÑÑ‚Ñ€Ñ‹Ðµ Ñ‚ÐµÐ³Ð¸ (Ñ‚Ð¾Ð²Ð°Ñ€Ñ‹)</div>
         <div class="settings-input-group">
-            <input type="text" id="new-tag-name" placeholder="Сыр">
+            <input type="text" id="new-tag-name" placeholder="Ð¡Ñ‹Ñ€">
             <button type="button" onclick="addNewTag()" class="main-btn add-btn-small">+</button>
         </div>
         <div id="manage-tags-list" style="margin-bottom: 32px;"></div>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
 
-        <div class="input-label" style="color: var(--accent-green);">Шаблоны</div>
+        <div class="input-label" style="color: var(--accent-green);">Ð¨Ð°Ð±Ð»Ð¾Ð½Ñ‹</div>
         <div class="settings-input-group">
-            <input type="text" id="new-temp-name" placeholder="Название">
+            <input type="text" id="new-temp-name" placeholder="ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ">
             <button type="button" onclick="addNewTemplate()" class="main-btn add-btn-small" style="background: var(--accent-green); color: white;">+</button>
         </div>
-        <textarea id="new-temp-text" placeholder="Список товаров" style="margin-bottom:16px; height:80px;"></textarea>
+        <textarea id="new-temp-text" placeholder="Ð¡Ð¿Ð¸ÑÐ¾Ðº Ñ‚Ð¾Ð²Ð°Ñ€Ð¾Ð²" style="margin-bottom:16px; height:80px;"></textarea>
         <div id="manage-temps-list"></div>
     </div>
 </div>
@@ -795,7 +796,7 @@
         <h3 id="recipe-modal-title" style="margin: 0 0 16px 0; font-size: 22px; font-weight: 800;"></h3>
         <div id="recipe-modal-description" style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;"></div>
         
-        <div class="input-label">Продукты</div>
+        <div class="input-label">ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹</div>
         <div id="recipe-modal-ingredients" style="margin-bottom: 24px;"></div>
         
         <div id="recipe-modal-actions" style="margin-top:24px;"></div>
@@ -804,27 +805,27 @@
 
 <div id="edit-modal" class="modal" onclick="closeModal(event, 'edit-modal')">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 800;">Редактировать список</h3>
+        <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 800;">Ð ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ ÑÐ¿Ð¸ÑÐ¾Ðº</h3>
         
         <form id="edit-form">
             <div style="display: flex; gap: 12px;">
                 <div style="flex: 1;">
-                    <div class="input-label">Категория</div>
+                    <div class="input-label">ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ</div>
                     <select id="edit-category"></select>
                 </div>
                 <div style="flex: 1;">
-                    <div class="input-label">Дата</div>
+                    <div class="input-label">Ð”Ð°Ñ‚Ð°</div>
                     <input type="date" id="edit-date">
                 </div>
             </div>
             
-            <div class="input-label">Магазин</div>
+            <div class="input-label">ÐœÐ°Ð³Ð°Ð·Ð¸Ð½</div>
             <select id="edit-shop"></select>
 
-            <div class="input-label">Товары</div>
-            <textarea id="edit-items" placeholder="Например:&#10;Молоко&#10;Хлеб" style="height: 150px;"></textarea>
+            <div class="input-label">Ð¢Ð¾Ð²Ð°Ñ€Ñ‹</div>
+            <textarea id="edit-items" placeholder="ÐÐ°Ð¿Ñ€Ð¸Ð¼ÐµÑ€:&#10;ÐœÐ¾Ð»Ð¾ÐºÐ¾&#10;Ð¥Ð»ÐµÐ±" style="height: 150px;"></textarea>
             
-            <button type="submit" class="main-btn">Сохранить изменения</button>
+            <button type="submit" class="main-btn">Ð¡Ð¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ</button>
         </form>
     </div>
 </div>
@@ -843,7 +844,7 @@
     tg.ready();
 
     const user = tg.initDataUnsafe?.user;
-    const myName = user?.first_name || "Друг";
+    const myName = user?.first_name || "Ð”Ñ€ÑƒÐ³";
     const myId = user ? user.id.toString() : "guest";
     
     let startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
@@ -854,50 +855,50 @@
     let dataCache = { todo: {}, done: {}, tags: {}, categories: {}, templates: {}, shops: {}, recipes: {} };
     let activeNoteId = null;
     let activeRecipeId = null;
-    let lastKnownTimestamp = Date.now(); // Для отслеживания новых элементов
+    let lastKnownTimestamp = Date.now(); // Ð”Ð»Ñ Ð¾Ñ‚ÑÐ»ÐµÐ¶Ð¸Ð²Ð°Ð½Ð¸Ñ Ð½Ð¾Ð²Ñ‹Ñ… ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð²
 
-    // -------- МАСКОТ АВОКАДО --------
+    // -------- ÐœÐÐ¡ÐšÐžÐ¢ ÐÐ’ÐžÐšÐÐ”Ðž --------
     function showNotification(message, type = 'success') {
         const mascot = document.getElementById('mascot-notification');
         const mascotText = document.getElementById('mascot-text');
         
-        // Устанавливаем текст сообщения
+        // Ð£ÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼ Ñ‚ÐµÐºÑÑ‚ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ñ
         mascotText.textContent = message;
         
-        // Показываем маскота
+        // ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ð¼Ð°ÑÐºÐ¾Ñ‚Ð°
         mascot.classList.add('show');
         
-        // Вибрация (если доступна)
+        // Ð’Ð¸Ð±Ñ€Ð°Ñ†Ð¸Ñ (ÐµÑÐ»Ð¸ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ð°)
         if (window.navigator && window.navigator.vibrate) {
             window.navigator.vibrate(50);
         }
         
-        // Скрываем через 3.5 секунды
+        // Ð¡ÐºÑ€Ñ‹Ð²Ð°ÐµÐ¼ Ñ‡ÐµÑ€ÐµÐ· 3.5 ÑÐµÐºÑƒÐ½Ð´Ñ‹
         setTimeout(() => {
             mascot.classList.remove('show');
         }, 3500);
     }
 
-    // -------- РЕКЛАМА --------
+    // -------- Ð Ð•ÐšÐ›ÐÐœÐ --------
     function showAd() {
         const adBanner = document.getElementById('ad-banner');
         
-        // Показываем рекламу
+        // ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ€ÐµÐºÐ»Ð°Ð¼Ñƒ
         adBanner.classList.add('show');
         
-        // Скрываем через 10 секунд
+        // Ð¡ÐºÑ€Ñ‹Ð²Ð°ÐµÐ¼ Ñ‡ÐµÑ€ÐµÐ· 10 ÑÐµÐºÑƒÐ½Ð´
         setTimeout(() => {
             adBanner.classList.remove('show');
             adBanner.classList.add('hide');
             
-            // Полностью убираем после анимации
+            // ÐŸÐ¾Ð»Ð½Ð¾ÑÑ‚ÑŒÑŽ ÑƒÐ±Ð¸Ñ€Ð°ÐµÐ¼ Ð¿Ð¾ÑÐ»Ðµ Ð°Ð½Ð¸Ð¼Ð°Ñ†Ð¸Ð¸
             setTimeout(() => {
                 adBanner.classList.remove('hide');
             }, 400);
         }, 10000);
     }
 
-    // -------- ТЕМЫ --------
+    // -------- Ð¢Ð•ÐœÐ« --------
     const THEME_KEY = 'family-shopping-theme';
 
     function applyTheme(theme) {
@@ -907,21 +908,21 @@
 
         if (theme === 'dark') {
             body.classList.add('theme-dark');
-            // Цвета Telegram для тёмной темы
+            // Ð¦Ð²ÐµÑ‚Ð° Telegram Ð´Ð»Ñ Ñ‚Ñ‘Ð¼Ð½Ð¾Ð¹ Ñ‚ÐµÐ¼Ñ‹
             tg.setHeaderColor('#18181b');
             tg.setBackgroundColor('#18181b');
             if (btnIcon && btnText) {
-                btnIcon.textContent = '🌙';
-                btnText.textContent = 'Тёмная';
+                btnIcon.textContent = 'ðŸŒ™';
+                btnText.textContent = 'Ð¢Ñ‘Ð¼Ð½Ð°Ñ';
             }
         } else {
             body.classList.remove('theme-dark');
-            // Цвета Telegram для светлой темы
+            // Ð¦Ð²ÐµÑ‚Ð° Telegram Ð´Ð»Ñ ÑÐ²ÐµÑ‚Ð»Ð¾Ð¹ Ñ‚ÐµÐ¼Ñ‹
             tg.setHeaderColor('#f3f4f6');
             tg.setBackgroundColor('#f3f4f6');
             if (btnIcon && btnText) {
-                btnIcon.textContent = '🌞';
-                btnText.textContent = 'Светлая';
+                btnIcon.textContent = 'ðŸŒž';
+                btnText.textContent = 'Ð¡Ð²ÐµÑ‚Ð»Ð°Ñ';
             }
         }
 
@@ -930,7 +931,7 @@
         } catch (e) {}
     }
 
-    // Инициализация темы при загрузке
+    // Ð˜Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ Ñ‚ÐµÐ¼Ñ‹ Ð¿Ñ€Ð¸ Ð·Ð°Ð³Ñ€ÑƒÐ·ÐºÐµ
     (function initTheme() {
         let saved = 'light';
         try {
@@ -942,13 +943,13 @@
         applyTheme(saved);
     })();
 
-    // Обработчик клика по кнопке темы
+    // ÐžÐ±Ñ€Ð°Ð±Ð¾Ñ‚Ñ‡Ð¸Ðº ÐºÐ»Ð¸ÐºÐ° Ð¿Ð¾ ÐºÐ½Ð¾Ð¿ÐºÐµ Ñ‚ÐµÐ¼Ñ‹
     document.getElementById('theme-toggle-btn').addEventListener('click', () => {
         const isDark = document.body.classList.contains('theme-dark');
         applyTheme(isDark ? 'light' : 'dark');
     });
 
-    // Функция сворачивания/разворачивания карточки создания списка
+    // Ð¤ÑƒÐ½ÐºÑ†Ð¸Ñ ÑÐ²Ð¾Ñ€Ð°Ñ‡Ð¸Ð²Ð°Ð½Ð¸Ñ/Ñ€Ð°Ð·Ð²Ð¾Ñ€Ð°Ñ‡Ð¸Ð²Ð°Ð½Ð¸Ñ ÐºÐ°Ñ€Ñ‚Ð¾Ñ‡ÐºÐ¸ ÑÐ¾Ð·Ð´Ð°Ð½Ð¸Ñ ÑÐ¿Ð¸ÑÐºÐ°
     function toggleInputCard() {
         const content = document.getElementById('input-card-content');
         const icon = document.getElementById('toggle-icon');
@@ -956,15 +957,15 @@
         if (content.style.display === 'none') {
             content.style.display = 'block';
             icon.style.transform = 'rotate(0deg)';
-            icon.textContent = '▼';
+            icon.textContent = 'â–¼';
         } else {
             content.style.display = 'none';
             icon.style.transform = 'rotate(-90deg)';
-            icon.textContent = '▶';
+            icon.textContent = 'â–¶';
         }
     }
 
-    // Массив для отслеживания новых списков (существует до закрытия приложения)
+    // ÐœÐ°ÑÑÐ¸Ð² Ð´Ð»Ñ Ð¾Ñ‚ÑÐ»ÐµÐ¶Ð¸Ð²Ð°Ð½Ð¸Ñ Ð½Ð¾Ð²Ñ‹Ñ… ÑÐ¿Ð¸ÑÐºÐ¾Ð² (ÑÑƒÑ‰ÐµÑÑ‚Ð²ÑƒÐµÑ‚ Ð´Ð¾ Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¸Ñ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ)
     let newListIds = [];
 
     notesRef.on('value', snap => {
@@ -1021,7 +1022,7 @@
     function updateShopSelect() {
         const select = document.getElementById('item-shop');
         const currentVal = select.value;
-        select.innerHTML = '<option value="">🛒 Любой магазин</option>';
+        select.innerHTML = '<option value="">ðŸ›’ Ð›ÑŽÐ±Ð¾Ð¹ Ð¼Ð°Ð³Ð°Ð·Ð¸Ð½</option>';
         Object.keys(dataCache.shops).forEach(id => select.add(new Option(dataCache.shops[id].name, dataCache.shops[id].name)));
         if(currentVal) select.value = currentVal;
     }
@@ -1052,7 +1053,7 @@
         const select = document.getElementById('item-category');
         const currentVal = select.value;
         select.innerHTML = '';
-        const defaultCats = ["🍎 Продукты", "🏠 Дом", "💊 Аптека", "👕 Одежда", "📦 Другое"];
+        const defaultCats = ["ðŸŽ ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹", "ðŸ  Ð”Ð¾Ð¼", "ðŸ’Š ÐÐ¿Ñ‚ÐµÐºÐ°", "ðŸ‘• ÐžÐ´ÐµÐ¶Ð´Ð°", "ðŸ“¦ Ð”Ñ€ÑƒÐ³Ð¾Ðµ"];
         const hasDbCats = Object.keys(dataCache.categories).length > 0;
         if (!hasDbCats) defaultCats.forEach(c => select.add(new Option(c, c)));
         else Object.keys(dataCache.categories).forEach(id => select.add(new Option(dataCache.categories[id].name, dataCache.categories[id].name)));
@@ -1125,7 +1126,7 @@
             keys.forEach(id => {
                 const div = document.createElement('div');
                 div.className = 'tag'; 
-                div.innerText = `📋 ${dataCache.templates[id].name}`;
+                div.innerText = `ðŸ“‹ ${dataCache.templates[id].name}`;
                 div.onclick = () => { area.value = dataCache.templates[id].text; area.oninput(); };
                 list.appendChild(div);
             });
@@ -1153,7 +1154,7 @@
             notesRef.child('templates').push({ name: n.value, text: t.value }).then(() => { 
                 n.value = ''; 
                 t.value = ''; 
-                showNotification('Шаблон добавлен', 'success');
+                showNotification('Ð¨Ð°Ð±Ð»Ð¾Ð½ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½', 'success');
                 renderManageTemplates();
             });
         }
@@ -1169,18 +1170,18 @@
     let text = area.value.trim();
     if (!text) return;
 
-    // Регулярные выражения для поиска данных
-    const catMatch = text.match(/📍 Категория:\s*(.+)/);
-    const shopMatch = text.match(/🛒 Магазин:\s*(.+)/);
-    const dateMatch = text.match(/📅 Дата:\s*(.+)/);
+    // Ð ÐµÐ³ÑƒÐ»ÑÑ€Ð½Ñ‹Ðµ Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ Ð´Ð»Ñ Ð¿Ð¾Ð¸ÑÐºÐ° Ð´Ð°Ð½Ð½Ñ‹Ñ…
+    const catMatch = text.match(/ðŸ“ ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ:\s*(.+)/);
+    const shopMatch = text.match(/ðŸ›’ ÐœÐ°Ð³Ð°Ð·Ð¸Ð½:\s*(.+)/);
+    const dateMatch = text.match(/ðŸ“… Ð”Ð°Ñ‚Ð°:\s*(.+)/);
 
-    // Очищаем текст от служебных строк, чтобы остались только товары
+    // ÐžÑ‡Ð¸Ñ‰Ð°ÐµÐ¼ Ñ‚ÐµÐºÑÑ‚ Ð¾Ñ‚ ÑÐ»ÑƒÐ¶ÐµÐ±Ð½Ñ‹Ñ… ÑÑ‚Ñ€Ð¾Ðº, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¾ÑÑ‚Ð°Ð»Ð¸ÑÑŒ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ñ‚Ð¾Ð²Ð°Ñ€Ñ‹
     let cleanText = text
-        .replace(/📍 Категория:.*\n?/, '')
-        .replace(/🛒 Магазин:.*\n?/, '')
-        .replace(/📅 Дата:.*\n?/, '')
-        .replace(/──────────────\n?/, '')
-        .replace(/^[✅▫️]\s*/gm, '') // Убираем иконки статуса
+        .replace(/ðŸ“ ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ:.*\n?/, '')
+        .replace(/ðŸ›’ ÐœÐ°Ð³Ð°Ð·Ð¸Ð½:.*\n?/, '')
+        .replace(/ðŸ“… Ð”Ð°Ñ‚Ð°:.*\n?/, '')
+        .replace(/â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€\n?/, '')
+        .replace(/^[âœ…â–«ï¸]\s*/gm, '') // Ð£Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ð¸ÐºÐ¾Ð½ÐºÐ¸ ÑÑ‚Ð°Ñ‚ÑƒÑÐ°
         .trim();
 
     const items = cleanText.split('\n').map(t => ({ text: t.trim(), checked: false })).filter(t => t.text);
@@ -1193,7 +1194,7 @@
         author: myName, 
         timestamp: Date.now()
     }).then((ref) => {
-        // Добавляем ID нового списка в массив
+        // Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ID Ð½Ð¾Ð²Ð¾Ð³Ð¾ ÑÐ¿Ð¸ÑÐºÐ° Ð² Ð¼Ð°ÑÑÐ¸Ð²
         newListIds.push(ref.key);
     });
     
@@ -1213,14 +1214,14 @@
             const div = document.createElement('div');
             div.className = 'item-row';
             
-            // Проверяем, является ли список новым
+            // ÐŸÑ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼, ÑÐ²Ð»ÑÐµÑ‚ÑÑ Ð»Ð¸ ÑÐ¿Ð¸ÑÐ¾Ðº Ð½Ð¾Ð²Ñ‹Ð¼
             const isNew = newListIds.includes(id);
             
-            // Добавляем класс для анимации, если элемент новый (добавлен за последние 3 секунды)
+            // Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ»Ð°ÑÑ Ð´Ð»Ñ Ð°Ð½Ð¸Ð¼Ð°Ñ†Ð¸Ð¸, ÐµÑÐ»Ð¸ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð½Ð¾Ð²Ñ‹Ð¹ (Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½ Ð·Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ðµ 3 ÑÐµÐºÑƒÐ½Ð´Ñ‹)
             const isJustAdded = note.timestamp > lastKnownTimestamp;
             if (isJustAdded) {
                 div.classList.add('new-item');
-                // Убираем класс после завершения анимации
+                // Ð£Ð±Ð¸Ñ€Ð°ÐµÐ¼ ÐºÐ»Ð°ÑÑ Ð¿Ð¾ÑÐ»Ðµ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð¸Ñ Ð°Ð½Ð¸Ð¼Ð°Ñ†Ð¸Ð¸
                 setTimeout(() => {
                     div.classList.remove('new-item');
                 }, 2000);
@@ -1237,7 +1238,7 @@
                         </div>
                         <div class="row-actions">
                             <button class="btn-copy" onclick="event.stopPropagation(); copyToClipboard('${id}')">
-                              <span data-text-end="Скопировано!" data-text-initial="Скопировать список" class="cp-tooltip"></span>
+                              <span data-text-end="Ð¡ÐºÐ¾Ð¿Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¾!" data-text-initial="Ð¡ÐºÐ¾Ð¿Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ ÑÐ¿Ð¸ÑÐ¾Ðº" class="cp-tooltip"></span>
                               <span>
                                 <svg xml:space="preserve" style="enable-background:new 0 0 512 512" viewBox="0 0 6.35 6.35" y="0" x="0" height="20" width="20" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" class="cp-clipboard">
                                   <g>
@@ -1251,21 +1252,21 @@
                                 </svg>
                               </span>
                             </button>
-                            <button class="btn-action" style="background: var(--primary); color: white;" onclick="event.stopPropagation(); editNote('${id}')">✏️</button>
+                            <button class="btn-action" style="background: var(--primary); color: white;" onclick="event.stopPropagation(); editNote('${id}')">âœï¸</button>
                             <button class="btn-action btn-del" onclick="event.stopPropagation(); deleteNote('${id}')">
                                 <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del">
                             </button>
                         </div>
                     </div>
                     <strong style="font-size: 17px; display: block; margin-bottom: 6px;">${note.items[0].text} ${note.items.length > 1 ? '(+' + (note.items.length-1) + ')' : ''}</strong>
-                    <div class="progress-text">${checkedCount} из ${note.items.length} КУПЛЕНО</div>
-                    <span class="author-badge">${note.date ? '📅 ' + note.date : ''}</span>
+                    <div class="progress-text">${checkedCount} Ð¸Ð· ${note.items.length} ÐšÐ£ÐŸÐ›Ð•ÐÐž</div>
+                    <span class="author-badge">${note.date ? 'ðŸ“… ' + note.date : ''}</span>
                 </div>
             `;
             list.appendChild(div);
         });
         
-        // Обновляем timestamp последнего известного элемента
+        // ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÐ¼ timestamp Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐ³Ð¾ Ð¸Ð·Ð²ÐµÑÑ‚Ð½Ð¾Ð³Ð¾ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð°
         if (sortedKeys.length > 0) {
             const latestTimestamp = Math.max(...sortedKeys.map(id => activeData[id].timestamp));
             if (latestTimestamp > lastKnownTimestamp) {
@@ -1280,36 +1281,36 @@
     if (!note) return;
 
     const modalTitle = document.getElementById('modal-title');
-    modalTitle.innerText = "Состав списка";
+    modalTitle.innerText = "Ð¡Ð¾ÑÑ‚Ð°Ð² ÑÐ¿Ð¸ÑÐºÐ°";
     
-    // Удаляем старый блок метаданных, если он есть
+    // Ð£Ð´Ð°Ð»ÑÐµÐ¼ ÑÑ‚Ð°Ñ€Ñ‹Ð¹ Ð±Ð»Ð¾Ðº Ð¼ÐµÑ‚Ð°Ð´Ð°Ð½Ð½Ñ‹Ñ…, ÐµÑÐ»Ð¸ Ð¾Ð½ ÐµÑÑ‚ÑŒ
     const oldMeta = document.getElementById('modal-meta-box');
     if (oldMeta) oldMeta.remove();
     
-    // Формируем новый блок метаданных в стиле дизайна приложения
+    // Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÐµÐ¼ Ð½Ð¾Ð²Ñ‹Ð¹ Ð±Ð»Ð¾Ðº Ð¼ÐµÑ‚Ð°Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð² ÑÑ‚Ð¸Ð»Ðµ Ð´Ð¸Ð·Ð°Ð¹Ð½Ð° Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ
     const metaHtml = `
         <div id="modal-meta-box" class="modal-meta-container">
             <div class="meta-item">
-                <span class="meta-label">📍 Категория:</span>
+                <span class="meta-label">ðŸ“ ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ:</span>
                 <span>${note.category}</span>
             </div>
             ${note.shop ? `
             <div class="meta-item">
-                <span class="meta-label">🛒 Магазин:</span>
+                <span class="meta-label">ðŸ›’ ÐœÐ°Ð³Ð°Ð·Ð¸Ð½:</span>
                 <span>${note.shop}</span>
             </div>` : ''}
             ${note.date ? `
             <div class="meta-item">
-                <span class="meta-label">📅 Дата:</span>
+                <span class="meta-label">ðŸ“… Ð”Ð°Ñ‚Ð°:</span>
                 <span>${note.date}</span>
             </div>` : ''}
         </div>
     `;
     
-    // Вставляем блок сразу после заголовка
+    // Ð’ÑÑ‚Ð°Ð²Ð»ÑÐµÐ¼ Ð±Ð»Ð¾Ðº ÑÑ€Ð°Ð·Ñƒ Ð¿Ð¾ÑÐ»Ðµ Ð·Ð°Ð³Ð¾Ð»Ð¾Ð²ÐºÐ°
     modalTitle.insertAdjacentHTML('afterend', metaHtml);
 
-    // Очищаем и заполняем список товаров
+    // ÐžÑ‡Ð¸Ñ‰Ð°ÐµÐ¼ Ð¸ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÐµÐ¼ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ð¾Ð²Ð°Ñ€Ð¾Ð²
     const listDiv = document.getElementById('modal-items-list');
     listDiv.innerHTML = '';
     note.items.forEach((item, idx) => {
@@ -1324,7 +1325,7 @@
 
     document.getElementById('modal-actions').innerHTML = `
         <button class="main-btn" onclick="moveNote()">
-            ${currentTab === 'todo' ? '✅ В архив' : '↩️ Вернуть'}
+            ${currentTab === 'todo' ? 'âœ… Ð’ Ð°Ñ€Ñ…Ð¸Ð²' : 'â†©ï¸ Ð’ÐµÑ€Ð½ÑƒÑ‚ÑŒ'}
         </button>
     `;
     
@@ -1343,10 +1344,10 @@
             notesRef.child(`${currentTab}/${activeNoteId}`).remove();
             closeModal(null, 'modal');
             if (currentTab === 'todo') {
-                showNotification('Список перемещен в архив', 'success');
-                showAd(); // Показываем рекламу при перемещении в архив
+                showNotification('Ð¡Ð¿Ð¸ÑÐ¾Ðº Ð¿ÐµÑ€ÐµÐ¼ÐµÑ‰ÐµÐ½ Ð² Ð°Ñ€Ñ…Ð¸Ð²', 'success');
+                showAd(); // ÐŸÐ¾ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ€ÐµÐºÐ»Ð°Ð¼Ñƒ Ð¿Ñ€Ð¸ Ð¿ÐµÑ€ÐµÐ¼ÐµÑ‰ÐµÐ½Ð¸Ð¸ Ð² Ð°Ñ€Ñ…Ð¸Ð²
             } else {
-                showNotification('Список восстановлен', 'success');
+                showNotification('Ð¡Ð¿Ð¸ÑÐ¾Ðº Ð²Ð¾ÑÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½', 'success');
             }
         });
     }
@@ -1374,14 +1375,14 @@
     function copyToClipboard(id) {
     const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[id];
     
-    // Формируем заголовок с метаданными
-    let header = `📍 Категория: ${note.category}\n`;
-    if (note.shop) header += `🛒 Магазин: ${note.shop}\n`;
-    if (note.date) header += `📅 Дата: ${note.date}\n`;
-    header += `──────────────\n`;
+    // Ð¤Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÐµÐ¼ Ð·Ð°Ð³Ð¾Ð»Ð¾Ð²Ð¾Ðº Ñ Ð¼ÐµÑ‚Ð°Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸
+    let header = `ðŸ“ ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ: ${note.category}\n`;
+    if (note.shop) header += `ðŸ›’ ÐœÐ°Ð³Ð°Ð·Ð¸Ð½: ${note.shop}\n`;
+    if (note.date) header += `ðŸ“… Ð”Ð°Ñ‚Ð°: ${note.date}\n`;
+    header += `â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€\n`;
 
-    // Собираем список товаров
-    const itemsText = note.items.map(i => `${i.checked ? '✅' : '▫️'} ${i.text}`).join('\n');
+    // Ð¡Ð¾Ð±Ð¸Ñ€Ð°ÐµÐ¼ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ð¾Ð²Ð°Ñ€Ð¾Ð²
+    const itemsText = note.items.map(i => `${i.checked ? 'âœ…' : 'â–«ï¸'} ${i.text}`).join('\n');
     
     const fullText = header + itemsText;
     
@@ -1391,20 +1392,20 @@
 }
 
     function clearArchive() {
-        tg.showConfirm("Очистить архив?", (ok) => {
+        tg.showConfirm("ÐžÑ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ Ð°Ñ€Ñ…Ð¸Ð²?", (ok) => {
             if (ok) {
                 notesRef.child('done').remove().then(() => {
-                    showNotification('Архив очищен', 'success');
+                    showNotification('ÐÑ€Ñ…Ð¸Ð² Ð¾Ñ‡Ð¸Ñ‰ÐµÐ½', 'success');
                 });
             }
         });
     }
 
     function deleteNote(id) {
-        tg.showConfirm("Удалить?", (ok) => {
+        tg.showConfirm("Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ?", (ok) => {
             if (ok) {
                 notesRef.child(`${currentTab}/${id}`).remove().then(() => {
-                    showNotification('Список удален', 'success');
+                    showNotification('Ð¡Ð¿Ð¸ÑÐ¾Ðº ÑƒÐ´Ð°Ð»ÐµÐ½', 'success');
                 });
             }
         });
@@ -1412,7 +1413,7 @@
 
     function closeModal(e, id) { if(!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
 
-    // Рецепты
+    // Ð ÐµÑ†ÐµÐ¿Ñ‚Ñ‹
     document.getElementById('recipe-form').onsubmit = (e) => {
         e.preventDefault();
         const name = document.getElementById('recipe-name').value.trim();
@@ -1448,9 +1449,9 @@
             div.onclick = () => openRecipe(id);
             div.innerHTML = `
                 <div style="flex: 1;">
-                    <strong style="font-size: 17px; display: block; margin-bottom: 6px;">🍳 ${recipe.name}</strong>
+                    <strong style="font-size: 17px; display: block; margin-bottom: 6px;">ðŸ³ ${recipe.name}</strong>
                     <div style="font-size: 13px; color: var(--text-secondary);">
-                        ${recipe.ingredients.length} ингредиент${recipe.ingredients.length === 1 ? '' : recipe.ingredients.length < 5 ? 'а' : 'ов'}
+                        ${recipe.ingredients.length} Ð¸Ð½Ð³Ñ€ÐµÐ´Ð¸ÐµÐ½Ñ‚${recipe.ingredients.length === 1 ? '' : recipe.ingredients.length < 5 ? 'Ð°' : 'Ð¾Ð²'}
                     </div>
                 </div>
                 <button class="btn-action btn-del" onclick="event.stopPropagation(); deleteRecipe('${id}')">
@@ -1466,7 +1467,7 @@
         const recipe = dataCache.recipes[id];
         
         document.getElementById('recipe-modal-title').innerText = recipe.name;
-        document.getElementById('recipe-modal-description').innerText = recipe.description || 'Описание не указано';
+        document.getElementById('recipe-modal-description').innerText = recipe.description || 'ÐžÐ¿Ð¸ÑÐ°Ð½Ð¸Ðµ Ð½Ðµ ÑƒÐºÐ°Ð·Ð°Ð½Ð¾';
         
         const ingredientsDiv = document.getElementById('recipe-modal-ingredients');
         ingredientsDiv.innerHTML = '';
@@ -1474,13 +1475,13 @@
         recipe.ingredients.forEach((item, idx) => {
             const div = document.createElement('div');
             div.className = 'check-item';
-            div.innerHTML = `<span>• ${item}</span>`;
+            div.innerHTML = `<span>â€¢ ${item}</span>`;
             ingredientsDiv.appendChild(div);
         });
         
         document.getElementById('recipe-modal-actions').innerHTML = `
             <button class="main-btn" onclick="addRecipeToShopping()" style="background: var(--accent-green);">
-                🛒 Добавить продукты в список покупок
+                ðŸ›’ Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð¿Ð¾ÐºÑƒÐ¿Ð¾Ðº
             </button>
         `;
         
@@ -1493,46 +1494,46 @@
         
         notesRef.child('todo').push({
             items,
-            category: "🍎 Продукты",
+            category: "ðŸŽ ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹",
             shop: "",
             author: myName,
             timestamp: Date.now(),
             date: ""
         }).then((ref) => {
-            // Добавляем ID нового списка в массив
+            // Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ID Ð½Ð¾Ð²Ð¾Ð³Ð¾ ÑÐ¿Ð¸ÑÐºÐ° Ð² Ð¼Ð°ÑÑÐ¸Ð²
             newListIds.push(ref.key);
             closeModal(null, 'recipe-modal');
-            showNotification(`Продукты из рецепта "${recipe.name}" добавлены в список`, 'success');
+            showNotification(`ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹ Ð¸Ð· Ñ€ÐµÑ†ÐµÐ¿Ñ‚Ð° "${recipe.name}" Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ñ‹ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº`, 'success');
             switchTab('todo');
         });
     }
 
     function deleteRecipe(id) {
-        tg.showConfirm("Удалить рецепт?", (ok) => {
+        tg.showConfirm("Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ Ñ€ÐµÑ†ÐµÐ¿Ñ‚?", (ok) => {
             if (ok) {
                 notesRef.child(`recipes/${id}`).remove().then(() => {
-                    showNotification('Рецепт удален', 'success');
+                    showNotification('Ð ÐµÑ†ÐµÐ¿Ñ‚ ÑƒÐ´Ð°Ð»ÐµÐ½', 'success');
                 });
             }
         });
     }
 
-    // Редактирование списка покупок
+    // Ð ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ ÑÐ¿Ð¸ÑÐºÐ° Ð¿Ð¾ÐºÑƒÐ¿Ð¾Ðº
     function editNote(id) {
         activeNoteId = id;
         const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[id];
         
-        // Обновляем селекты категорий и магазинов
+        // ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÐ¼ ÑÐµÐ»ÐµÐºÑ‚Ñ‹ ÐºÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ð¹ Ð¸ Ð¼Ð°Ð³Ð°Ð·Ð¸Ð½Ð¾Ð²
         updateEditCategorySelect();
         updateEditShopSelect();
         
-        // Заполняем форму текущими данными
+        // Ð—Ð°Ð¿Ð¾Ð»Ð½ÑÐµÐ¼ Ñ„Ð¾Ñ€Ð¼Ñƒ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¼Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸
         document.getElementById('edit-category').value = note.category || '';
         document.getElementById('edit-shop').value = note.shop || '';
         document.getElementById('edit-date').value = note.date || '';
         document.getElementById('edit-items').value = note.items.map(i => i.text).join('\n');
         
-        // Автоматически подстраиваем высоту textarea
+        // ÐÐ²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð¿Ð¾Ð´ÑÑ‚Ñ€Ð°Ð¸Ð²Ð°ÐµÐ¼ Ð²Ñ‹ÑÐ¾Ñ‚Ñƒ textarea
         const textarea = document.getElementById('edit-items');
         textarea.style.height = "auto";
         textarea.style.height = (textarea.scrollHeight) + "px";
@@ -1543,7 +1544,7 @@
     function updateEditCategorySelect() {
         const select = document.getElementById('edit-category');
         select.innerHTML = '';
-        const defaultCats = ["🍎 Продукты", "🏠 Дом", "💊 Аптека", "👕 Одежда", "📦 Другое"];
+        const defaultCats = ["ðŸŽ ÐŸÑ€Ð¾Ð´ÑƒÐºÑ‚Ñ‹", "ðŸ  Ð”Ð¾Ð¼", "ðŸ’Š ÐÐ¿Ñ‚ÐµÐºÐ°", "ðŸ‘• ÐžÐ´ÐµÐ¶Ð´Ð°", "ðŸ“¦ Ð”Ñ€ÑƒÐ³Ð¾Ðµ"];
         const hasDbCats = Object.keys(dataCache.categories).length > 0;
         if (!hasDbCats) defaultCats.forEach(c => select.add(new Option(c, c)));
         else Object.keys(dataCache.categories).forEach(id => select.add(new Option(dataCache.categories[id].name, dataCache.categories[id].name)));
@@ -1551,7 +1552,7 @@
 
     function updateEditShopSelect() {
         const select = document.getElementById('edit-shop');
-        select.innerHTML = '<option value="">🛒 Любой магазин</option>';
+        select.innerHTML = '<option value="">ðŸ›’ Ð›ÑŽÐ±Ð¾Ð¹ Ð¼Ð°Ð³Ð°Ð·Ð¸Ð½</option>';
         Object.keys(dataCache.shops).forEach(id => select.add(new Option(dataCache.shops[id].name, dataCache.shops[id].name)));
     }
 
@@ -1562,7 +1563,7 @@
         if (!text) return;
         
         const items = text.split('\n').map(t => t.trim()).filter(t => t).map(text => {
-            // Сохраняем статус checked если товар остался в списке
+            // Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼ ÑÑ‚Ð°Ñ‚ÑƒÑ checked ÐµÑÐ»Ð¸ Ñ‚Ð¾Ð²Ð°Ñ€ Ð¾ÑÑ‚Ð°Ð»ÑÑ Ð² ÑÐ¿Ð¸ÑÐºÐµ
             const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
             const existingItem = note.items.find(i => i.text === text);
             return { text, checked: existingItem ? existingItem.checked : false };
@@ -1579,7 +1580,7 @@
         
         notesRef.child(`${currentTab}/${activeNoteId}`).set(updatedNote).then(() => {
             closeModal(null, 'edit-modal');
-            showNotification('Список обновлен', 'success');
+            showNotification('Ð¡Ð¿Ð¸ÑÐ¾Ðº Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½', 'success');
         });
     };
 </script>
