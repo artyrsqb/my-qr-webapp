@@ -224,7 +224,8 @@
         .settings-input-group input { margin-bottom: 0 !important; flex: 1; }
         .add-btn-small { width: 48px !important; height: 48px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 14px !important; flex-shrink: 0; }
 
-        .item-row { 
+        .item-row {
+            position: relative;		
             background: var(--card-bg); 
             padding: 16px 20px; 
             border-radius: 20px; 
@@ -628,12 +629,6 @@
     z-index: 10;
     pointer-events: none;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-}
-
-/* Обязательно добавьте position: relative для родительского контейнера */
-.item-row {
-    position: relative;
-    /* остальные свойства .item-row оставляем как есть */
 }
 
     </style>
