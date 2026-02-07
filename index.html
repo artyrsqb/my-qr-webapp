@@ -7,8 +7,6 @@
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
@@ -135,22 +133,6 @@
             border: 1px solid var(--border); 
             box-shadow: var(--shadow-md); 
             margin-bottom: 24px; 
-            position: relative;
-        }
-        
-        .new-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: #ef4444;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
-            z-index: 10;
         }
         
         .tags-container { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
@@ -243,6 +225,7 @@
         .add-btn-small { width: 48px !important; height: 48px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 14px !important; flex-shrink: 0; }
 
         .item-row { 
+			position: relative;
             background: var(--card-bg); 
             padding: 16px 20px; 
             border-radius: 20px; 
@@ -637,6 +620,17 @@
             }
         }
 
+		.new-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 42px; /* Размер вашей иконки */
+    height: 42px;
+    z-index: 10;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
     </style>
 </head>
 <body>
@@ -830,15 +824,6 @@
 </div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAeaotCnJ8XGNQ4UT_sBaeg7XMxYGmwInI",
-      authDomain: "my-purchases-1748b.firebaseapp.com",
-      projectId: "my-purchases-1748b",
-      databaseURL: "https://my-purchases-1748b-default-rtdb.europe-west1.firebasedatabase.app",
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
     const tg = window.Telegram.WebApp;
     tg.ready();
 
@@ -848,13 +833,129 @@
     
     let startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
     const roomId = startParam || myId;
-    const notesRef = db.ref(`shared_notes/${roomId}`);
 
     let currentTab = 'todo';
     let dataCache = { todo: {}, done: {}, tags: {}, categories: {}, templates: {}, shops: {}, recipes: {} };
     let activeNoteId = null;
     let activeRecipeId = null;
-    let lastKnownTimestamp = Date.now(); // Для отслеживания новых элементов
+    let lastKnownTimestamp = Date.now();
+
+    // -------- TELEGRAM CLOUD STORAGE --------
+    const CloudStorage = {
+        async setItem(key, value) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.setItem(key, JSON.stringify(value), (error, result) => {
+                    if (error) {
+                        console.error('CloudStorage setItem error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        },
+        async getItem(key) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.getItem(key, (error, result) => {
+                    if (error) {
+                        console.error('CloudStorage getItem error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result ? JSON.parse(result) : null);
+                    }
+                });
+            });
+        },
+        async removeItem(key) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.removeItem(key, (error, result) => {
+                    if (error) {
+                        console.error('CloudStorage removeItem error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        },
+        async getKeys() {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.getKeys((error, result) => {
+                    if (error) {
+                        console.error('CloudStorage getKeys error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result || []);
+                    }
+                });
+            });
+        }
+    };
+
+    // Функции для работы с данными в Cloud Storage
+    async function loadAllData() {
+        try {
+            const [todo, done, tags, categories, templates, shops, recipes] = await Promise.all([
+                CloudStorage.getItem(`${roomId}_todo`),
+                CloudStorage.getItem(`${roomId}_done`),
+                CloudStorage.getItem(`${roomId}_tags`),
+                CloudStorage.getItem(`${roomId}_categories`),
+                CloudStorage.getItem(`${roomId}_templates`),
+                CloudStorage.getItem(`${roomId}_shops`),
+                CloudStorage.getItem(`${roomId}_recipes`)
+            ]);
+
+            dataCache = {
+                todo: todo || {},
+                done: done || {},
+                tags: tags || {},
+                categories: categories || {},
+                templates: templates || {},
+                shops: shops || {},
+                recipes: recipes || {}
+            };
+
+            renderItems();
+            renderQuickTags();
+            updateCategorySelect();
+            renderQuickTemplates();
+            updateShopSelect();
+            renderRecipes();
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    }
+
+    async function saveData(section, data) {
+        try {
+            dataCache[section] = data;
+            await CloudStorage.setItem(`${roomId}_${section}`, data);
+            
+            // Обновляем интерфейс
+            if (section === 'todo' || section === 'done') {
+                renderItems();
+            } else if (section === 'tags') {
+                renderQuickTags();
+                renderManageTags();
+            } else if (section === 'categories') {
+                updateCategorySelect();
+                renderManageCategories();
+            } else if (section === 'templates') {
+                renderQuickTemplates();
+                renderManageTemplates();
+            } else if (section === 'shops') {
+                updateShopSelect();
+                renderManageShops();
+            } else if (section === 'recipes') {
+                renderRecipes();
+            }
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
+    }
+
+    // Загружаем данные при старте
+    loadAllData();
 
     // -------- МАСКОТ АВОКАДО --------
     function showNotification(message, type = 'success') {
@@ -964,36 +1065,6 @@
         }
     }
 
-    // Массив для отслеживания новых списков (существует до закрытия приложения)
-    let newListIds = [];
-
-    notesRef.on('value', snap => {
-        const data = snap.val() || {};
-        dataCache = {
-            todo: data.todo || {},
-            done: data.done || {},
-            tags: data.tags || {},
-            categories: data.categories || {},
-            templates: data.templates || {},
-            shops: data.shops || {},
-            recipes: data.recipes || {}
-        };
-        
-        renderItems();
-        renderQuickTags();
-        updateCategorySelect();
-        renderQuickTemplates();
-        updateShopSelect();
-        renderRecipes();
-        
-        if(document.getElementById('tag-modal').style.display === 'flex') {
-            renderManageShops();
-            renderManageCategories();
-            renderManageTags();
-            renderManageTemplates();
-        }
-    });
-
     const area = document.getElementById('item-text');
     area.oninput = function() {
         this.style.height = "auto";
@@ -1034,18 +1105,21 @@
         });
     }
 
-    function deleteShop(id) {
-        notesRef.child(`shops/${id}`).remove().then(() => {
-            renderManageShops();
-        });
+    async function deleteShop(id) {
+        const updatedShops = { ...dataCache.shops };
+        delete updatedShops[id];
+        await saveData('shops', updatedShops);
     }
 
-    function addNewShop() {
+    async function addNewShop() {
         const input = document.getElementById('new-shop-name');
-        if(input.value.trim()) notesRef.child('shops').push({ name: input.value.trim() }).then(() => { 
-            input.value = ''; 
-            renderManageShops();
-        });
+        const name = input.value.trim();
+        if (name) {
+            const newId = 'shop_' + Date.now();
+            const updatedShops = { ...dataCache.shops, [newId]: { name } };
+            await saveData('shops', updatedShops);
+            input.value = '';
+        }
     }
 
     function updateCategorySelect() {
@@ -1067,18 +1141,21 @@
         });
     }
 
-    function deleteCategory(id) {
-        notesRef.child(`categories/${id}`).remove().then(() => {
-            renderManageCategories();
-        });
+    async function deleteCategory(id) {
+        const updatedCategories = { ...dataCache.categories };
+        delete updatedCategories[id];
+        await saveData('categories', updatedCategories);
     }
 
-    function addNewCategory() {
+    async function addNewCategory() {
         const input = document.getElementById('new-cat-name');
-        if(input.value.trim()) notesRef.child('categories').push({ name: input.value.trim() }).then(() => { 
-            input.value = ''; 
-            renderManageCategories();
-        });
+        const name = input.value.trim();
+        if (name) {
+            const newId = 'cat_' + Date.now();
+            const updatedCategories = { ...dataCache.categories, [newId]: { name } };
+            await saveData('categories', updatedCategories);
+            input.value = '';
+        }
     }
 
     function renderQuickTags() {
@@ -1101,18 +1178,21 @@
         });
     }
 
-    function deleteTag(id) {
-        notesRef.child(`tags/${id}`).remove().then(() => {
-            renderManageTags();
-        });
+    async function deleteTag(id) {
+        const updatedTags = { ...dataCache.tags };
+        delete updatedTags[id];
+        await saveData('tags', updatedTags);
     }
 
-    function addNewTag() {
+    async function addNewTag() {
         const input = document.getElementById('new-tag-name');
-        if(input.value.trim()) notesRef.child('tags').push({ name: input.value.trim() }).then(() => { 
-            input.value = ''; 
-            renderManageTags();
-        });
+        const name = input.value.trim();
+        if (name) {
+            const newId = 'tag_' + Date.now();
+            const updatedTags = { ...dataCache.tags, [newId]: { name } };
+            await saveData('tags', updatedTags);
+            input.value = '';
+        }
     }
 
     function renderQuickTemplates() {
@@ -1140,22 +1220,24 @@
         });
     }
 
-    function deleteTemplate(id) {
-        notesRef.child(`templates/${id}`).remove().then(() => {
-            renderManageTemplates();
-        });
+    async function deleteTemplate(id) {
+        const updatedTemplates = { ...dataCache.templates };
+        delete updatedTemplates[id];
+        await saveData('templates', updatedTemplates);
     }
 
-    function addNewTemplate() {
+    async function addNewTemplate() {
         const n = document.getElementById('new-temp-name');
         const t = document.getElementById('new-temp-text');
-        if(n.value && t.value) {
-            notesRef.child('templates').push({ name: n.value, text: t.value }).then(() => { 
-                n.value = ''; 
-                t.value = ''; 
-                showNotification('Шаблон добавлен', 'success');
-                renderManageTemplates();
-            });
+        const name = n.value.trim();
+        const text = t.value.trim();
+        if (name && text) {
+            const newId = 'temp_' + Date.now();
+            const updatedTemplates = { ...dataCache.templates, [newId]: { name, text } };
+            await saveData('templates', updatedTemplates);
+            n.value = '';
+            t.value = '';
+            showNotification('Шаблон добавлен', 'success');
         }
     }
 
@@ -1164,7 +1246,7 @@
         renderManageShops(); renderManageCategories(); renderManageTags(); renderManageTemplates();
     }
 
-    document.getElementById('shop-form').onsubmit = (e) => {
+    document.getElementById('shop-form').onsubmit = async (e) => {
     e.preventDefault();
     let text = area.value.trim();
     if (!text) return;
@@ -1185,17 +1267,20 @@
 
     const items = cleanText.split('\n').map(t => ({ text: t.trim(), checked: false })).filter(t => t.text);
     
-    notesRef.child('todo').push({ 
-        items, 
-        category: catMatch ? catMatch[1].trim() : document.getElementById('item-category').value, 
-        shop: shopMatch ? shopMatch[1].trim() : document.getElementById('item-shop').value,
-        date: dateMatch ? dateMatch[1].trim() : document.getElementById('buy-date').value,
-        author: myName, 
-        timestamp: Date.now()
-    }).then((ref) => {
-        // Добавляем ID нового списка в массив
-        newListIds.push(ref.key);
-    });
+    const newId = 'note_' + Date.now();
+    const updatedTodo = { 
+        ...dataCache.todo, 
+        [newId]: {
+            items, 
+            category: catMatch ? catMatch[1].trim() : document.getElementById('item-category').value, 
+            shop: shopMatch ? shopMatch[1].trim() : document.getElementById('item-shop').value,
+            date: dateMatch ? dateMatch[1].trim() : document.getElementById('buy-date').value,
+            author: myName, 
+            timestamp: Date.now()
+        }
+    };
+    
+    await saveData('todo', updatedTodo);
     
     e.target.reset(); 
     area.style.height = '80px';
@@ -1213,23 +1298,9 @@
             const div = document.createElement('div');
             div.className = 'item-row';
             
-            // Проверяем, является ли список новым
-            const isNew = newListIds.includes(id);
-            
-            // Если список новый, удаляем его из массива через 5 секунд
-            if (isNew) {
-                setTimeout(() => {
-                    const index = newListIds.indexOf(id);
-                    if (index > -1) {
-                        newListIds.splice(index, 1);
-                        renderItems(); // Перерисовываем список без бейджа
-                    }
-                }, 5000);
-            }
-            
             // Добавляем класс для анимации, если элемент новый (добавлен за последние 3 секунды)
-            const isJustAdded = note.timestamp > lastKnownTimestamp;
-            if (isJustAdded) {
+            const isNew = note.timestamp > lastKnownTimestamp;
+            if (isNew) {
                 div.classList.add('new-item');
                 // Убираем класс после завершения анимации
                 setTimeout(() => {
@@ -1239,12 +1310,15 @@
             
             div.onclick = () => openNote(id);
             div.innerHTML = `
-                ${isNew ? '<div class="new-badge">NEW</div>' : ''}
-                <div style="width: 100%;">
-                    <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                        <div style="display:flex; align-items:center; gap: 6px;">
-                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${note.category}</div>
-                            ${note.shop ? `<span class="shop-badge">${note.shop}</span>` : ""}
+                div.innerHTML = `
+    ${isNew ? '<img src="new.png" class="new-badge">' : ''}
+    <div style="width: 100%;">
+        <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div style="display:flex; align-items:center; gap: 6px;">
+                <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${note.category}</div>
+                ${note.shop ? `<span class="shop-badge">${note.shop}</span>` : ""}
+            </div>
+            `;
                         </div>
                         <div class="row-actions">
                             <button class="btn-copy" onclick="event.stopPropagation(); copyToClipboard('${id}')">
@@ -1342,24 +1416,38 @@
     document.getElementById('modal').style.display = 'flex';
 }
 
-    function toggleCheck(idx, val) {
-        const path = `${currentTab}/${activeNoteId}/items/${idx}/checked`;
-        notesRef.child(path).set(val);
+    async function toggleCheck(idx, val) {
+        const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
+        note.items[idx].checked = val;
+        
+        const section = currentTab === 'todo' ? 'todo' : 'done';
+        const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+        updatedData[activeNoteId] = note;
+        
+        await saveData(section, updatedData);
     }
 
-    function moveNote() {
+    async function moveNote() {
         const target = currentTab === 'todo' ? 'done' : 'todo';
         const data = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
-        notesRef.child(target).push(data).then(() => {
-            notesRef.child(`${currentTab}/${activeNoteId}`).remove();
-            closeModal(null, 'modal');
-            if (currentTab === 'todo') {
-                showNotification('Список перемещен в архив', 'success');
-                showAd(); // Показываем рекламу при перемещении в архив
-            } else {
-                showNotification('Список восстановлен', 'success');
-            }
-        });
+        
+        // Добавляем в целевую секцию
+        const newId = 'note_' + Date.now();
+        const updatedTarget = { ...(target === 'todo' ? dataCache.todo : dataCache.done), [newId]: data };
+        await saveData(target, updatedTarget);
+        
+        // Удаляем из текущей секции
+        const updatedCurrent = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+        delete updatedCurrent[activeNoteId];
+        await saveData(currentTab, updatedCurrent);
+        
+        closeModal(null, 'modal');
+        if (currentTab === 'todo') {
+            showNotification('Список перемещен в архив', 'success');
+            showAd(); // Показываем рекламу при перемещении в архив
+        } else {
+            showNotification('Список восстановлен', 'success');
+        }
     }
 
     function switchTab(tab) {
@@ -1401,22 +1489,22 @@
     });
 }
 
-    function clearArchive() {
-        tg.showConfirm("Очистить архив?", (ok) => {
+    async function clearArchive() {
+        tg.showConfirm("Очистить архив?", async (ok) => {
             if (ok) {
-                notesRef.child('done').remove().then(() => {
-                    showNotification('Архив очищен', 'success');
-                });
+                await saveData('done', {});
+                showNotification('Архив очищен', 'success');
             }
         });
     }
 
-    function deleteNote(id) {
-        tg.showConfirm("Удалить?", (ok) => {
+    async function deleteNote(id) {
+        tg.showConfirm("Удалить?", async (ok) => {
             if (ok) {
-                notesRef.child(`${currentTab}/${id}`).remove().then(() => {
-                    showNotification('Список удален', 'success');
-                });
+                const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+                delete updatedData[id];
+                await saveData(currentTab, updatedData);
+                showNotification('Список удален', 'success');
             }
         });
     }
@@ -1424,7 +1512,7 @@
     function closeModal(e, id) { if(!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
 
     // Рецепты
-    document.getElementById('recipe-form').onsubmit = (e) => {
+    document.getElementById('recipe-form').onsubmit = async (e) => {
         e.preventDefault();
         const name = document.getElementById('recipe-name').value.trim();
         const description = document.getElementById('recipe-description').value.trim();
@@ -1434,13 +1522,19 @@
         
         const ingredientsList = ingredients.split('\n').map(t => t.trim()).filter(t => t);
         
-        notesRef.child('recipes').push({
-            name,
-            description,
-            ingredients: ingredientsList,
-            author: myName,
-            timestamp: Date.now()
-        });
+        const newId = 'recipe_' + Date.now();
+        const updatedRecipes = {
+            ...dataCache.recipes,
+            [newId]: {
+                name,
+                description,
+                ingredients: ingredientsList,
+                author: myName,
+                timestamp: Date.now()
+            }
+        };
+        
+        await saveData('recipes', updatedRecipes);
         
         e.target.reset();
         document.getElementById('recipe-description').style.height = '120px';
@@ -1498,32 +1592,36 @@
         document.getElementById('recipe-modal').style.display = 'flex';
     }
 
-    function addRecipeToShopping() {
+    async function addRecipeToShopping() {
         const recipe = dataCache.recipes[activeRecipeId];
         const items = recipe.ingredients.map(text => ({ text, checked: false }));
         
-        notesRef.child('todo').push({
-            items,
-            category: "🍎 Продукты",
-            shop: "",
-            author: myName,
-            timestamp: Date.now(),
-            date: ""
-        }).then((ref) => {
-            // Добавляем ID нового списка в массив
-            newListIds.push(ref.key);
-            closeModal(null, 'recipe-modal');
-            showNotification(`Продукты из рецепта "${recipe.name}" добавлены в список`, 'success');
-            switchTab('todo');
-        });
+        const newId = 'note_' + Date.now();
+        const updatedTodo = {
+            ...dataCache.todo,
+            [newId]: {
+                items,
+                category: "🍎 Продукты",
+                shop: "",
+                author: myName,
+                timestamp: Date.now(),
+                date: ""
+            }
+        };
+        
+        await saveData('todo', updatedTodo);
+        closeModal(null, 'recipe-modal');
+        showNotification(`Продукты из рецепта "${recipe.name}" добавлены в список`, 'success');
+        switchTab('todo');
     }
 
-    function deleteRecipe(id) {
-        tg.showConfirm("Удалить рецепт?", (ok) => {
+    async function deleteRecipe(id) {
+        tg.showConfirm("Удалить рецепт?", async (ok) => {
             if (ok) {
-                notesRef.child(`recipes/${id}`).remove().then(() => {
-                    showNotification('Рецепт удален', 'success');
-                });
+                const updatedRecipes = { ...dataCache.recipes };
+                delete updatedRecipes[id];
+                await saveData('recipes', updatedRecipes);
+                showNotification('Рецепт удален', 'success');
             }
         });
     }
@@ -1566,7 +1664,7 @@
         Object.keys(dataCache.shops).forEach(id => select.add(new Option(dataCache.shops[id].name, dataCache.shops[id].name)));
     }
 
-    document.getElementById('edit-form').onsubmit = (e) => {
+    document.getElementById('edit-form').onsubmit = async (e) => {
         e.preventDefault();
         
         const text = document.getElementById('edit-items').value.trim();
@@ -1588,64 +1686,14 @@
             timestamp: (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId].timestamp
         };
         
-        notesRef.child(`${currentTab}/${activeNoteId}`).set(updatedNote).then(() => {
-            closeModal(null, 'edit-modal');
-            showNotification('Список обновлен', 'success');
-        });
+        const section = currentTab === 'todo' ? 'todo' : 'done';
+        const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+        updatedData[activeNoteId] = updatedNote;
+        
+        await saveData(section, updatedData);
+        closeModal(null, 'edit-modal');
+        showNotification('Список обновлен', 'success');
     };
-
-	<!-- NEW-подсказка -->
-<div id="new-badge" style="
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-  display: none;
-  pointer-events: none;
-">
-  <img src="new-badge.png" alt="NEW" width="120" height="120">
-</div>
-
-<script>
-  // Имитируем событие создания списка (замените на реальный хендлер, когда будет логика)
-  document.addEventListener('DOMContentLoaded', () => {
-    // Пример: при клике на "Создать список" показываем бейдж
-    const createBtn = document.querySelector('button:contains("Создать список")') ||
-                      Array.from(document.querySelectorAll('*')).find(el =>
-                        el.textContent.includes('Создать список') && el.tagName.startsWith('B')
-                      ) || null;
-
-    // Если не найдено — можно повесить на любой элемент с текстом "Создать список"
-    // Для надёжности: используем делегирование по тексту
-    document.body.addEventListener('click', (e) => {
-      if (e.target.textContent.trim() === 'Создать список') {
-        showNewBadge();
-      }
-    });
-
-    function showNewBadge() {
-      const badge = document.getElementById('new-badge');
-      badge.style.display = 'block';
-      // Анимация появления (опционально)
-      badge.style.opacity = '0';
-      setTimeout(() => {
-        badge.style.transition = 'opacity 0.3s ease';
-        badge.style.opacity = '1';
-      }, 10);
-
-      // Скрыть через 3 секунды
-      setTimeout(() => {
-        badge.style.transition = 'opacity 0.5s ease';
-        badge.style.opacity = '0';
-        setTimeout(() => {
-          badge.style.display = 'none';
-        }, 500);
-      }, 3000);
-    }
-  });
-</script>
 </script>
 </body>
 </html>
-
