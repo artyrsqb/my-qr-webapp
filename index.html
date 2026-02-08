@@ -94,6 +94,7 @@ const QRCodeGenerator = () => {
   const [qrData, setQrData] = useState('');
   const [copied, setCopied] = useState(false);
   const qrContainerRef = useRef(null);
+  const [tg, setTg] = useState(null);
   
   // Form states for different types
   const [urlInput, setUrlInput] = useState('');
@@ -106,6 +107,27 @@ const QRCodeGenerator = () => {
     organization: '',
     url: ''
   });
+
+  // Initialize Telegram WebApp
+  useEffect(() => {
+    if (window.Telegram?.WebApp) {
+      const webapp = window.Telegram.WebApp;
+      setTg(webapp);
+      
+      // Expand to full height
+      webapp.expand();
+      
+      // Enable closing confirmation
+      webapp.enableClosingConfirmation();
+      
+      // Set header color
+      webapp.setHeaderColor('#ffffff');
+      webapp.setBackgroundColor('#f3f4f6');
+      
+      // Ready
+      webapp.ready();
+    }
+  }, []);
 
   // QR Code generation using QRious library via CDN
   const generateQRCode = async (text) => {
@@ -244,17 +266,35 @@ END:VCARD`;
     const img = qrContainerRef.current?.querySelector('img');
     
     if (canvas) {
-      // Download from canvas
-      const link = document.createElement('a');
-      link.download = `qr-code-${activeTab}.png`;
-      link.href = canvas.toDataURL();
-      link.click();
+      // For Telegram Mini App, try to share or download
+      const dataUrl = canvas.toDataURL();
+      
+      if (tg) {
+        // Show haptic feedback
+        tg.HapticFeedback?.impactOccurred('medium');
+        
+        // Try to download
+        const link = document.createElement('a');
+        link.download = `qr-code-${activeTab}.png`;
+        link.href = dataUrl;
+        link.click();
+      } else {
+        // Regular download
+        const link = document.createElement('a');
+        link.download = `qr-code-${activeTab}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
     } else if (img) {
       // Download from image
       const link = document.createElement('a');
       link.download = `qr-code-${activeTab}.png`;
       link.href = img.src;
       link.click();
+      
+      if (tg) {
+        tg.HapticFeedback?.impactOccurred('medium');
+      }
     }
   };
 
@@ -263,9 +303,19 @@ END:VCARD`;
       try {
         await navigator.clipboard.writeText(qrData);
         setCopied(true);
+        
+        // Haptic feedback for Telegram
+        if (tg) {
+          tg.HapticFeedback?.notificationOccurred('success');
+        }
+        
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
         console.error('Failed to copy text: ', err);
+        
+        if (tg) {
+          tg.HapticFeedback?.notificationOccurred('error');
+        }
       }
     }
   };
@@ -293,17 +343,23 @@ END:VCARD`;
     { id: 'contact', label: t('contactTab'), icon: User }
   ];
 
+  // Get theme colors from Telegram
+  const bgColor = tg?.themeParams?.bg_color || '#f3f4f6';
+  const textColor = tg?.themeParams?.text_color || '#1f2937';
+  const buttonColor = tg?.themeParams?.button_color || '#8b5cf6';
+  const buttonTextColor = tg?.themeParams?.button_text_color || '#ffffff';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-2 sm:p-4" style={{ backgroundColor: bgColor }}>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-4 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl mb-3 sm:mb-4">
-            <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl mb-3 sm:mb-4" style={{ backgroundColor: buttonColor }}>
+            <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-white" style={{ color: buttonTextColor }} />
           </div>
-          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2" style={{ color: textColor }}>
             {t('appTitle')}
           </h1>
-          <p className="text-gray-600 text-sm sm:text-lg px-4">{t('appDescription')}</p>
+          <p className="text-gray-600 text-sm sm:text-lg px-4" style={{ color: textColor, opacity: 0.7 }}>{t('appDescription')}</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
