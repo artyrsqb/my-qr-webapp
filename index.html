@@ -1,600 +1,2083 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { QrCode, Link, MessageSquare, User, Download, Copy, Check } from 'lucide-react';
-
-const TRANSLATIONS = {
-  "en-US": {
-    "appTitle": "QR Code Generator",
-    "appDescription": "Generate QR codes for URLs, text, and contact information",
-    "urlTab": "URL",
-    "textTab": "Text",
-    "contactTab": "Contact",
-    "enterUrl": "Enter URL",
-    "enterText": "Enter Text",
-    "contactInformation": "Contact Information",
-    "websiteUrl": "Website URL",
-    "urlPlaceholder": "example.com or https://example.com",
-    "urlHelp": "Enter a website URL. If you don't include http://, we'll add https:// automatically.",
-    "textContent": "Text Content",
-    "textPlaceholder": "Enter any text to generate QR code...",
-    "firstName": "First Name",
-    "firstNamePlaceholder": "John",
-    "lastName": "Last Name",
-    "lastNamePlaceholder": "Doe",
-    "phoneNumber": "Phone Number",
-    "phonePlaceholder": "+1 (555) 123-4567",
-    "emailAddress": "Email Address",
-    "emailPlaceholder": "john.doe@example.com",
-    "organization": "Organization",
-    "organizationPlaceholder": "Company Name",
-    "website": "Website",
-    "websitePlaceholder": "https://example.com",
-    "clearAllFields": "Clear All Fields",
-    "generatedQrCode": "Generated QR Code",
-    "scanQrCode": "Scan this QR code with your device",
-    "fillFormPrompt": "Fill in the form to generate your QR code",
-    "download": "Download",
-    "copyData": "Copy Data",
-    "copied": "Copied!",
-    "qrCodeData": "QR Code Data:",
-    "footerText": "Generate QR codes instantly • No data stored • Free to use",
-    "qrCodeAlt": "Generated QR Code"
-  },
-  "es-ES": {
-    "appTitle": "Generador de Códigos QR",
-    "appDescription": "Genera códigos QR para URLs, texto e información de contacto",
-    "urlTab": "URL",
-    "textTab": "Texto",
-    "contactTab": "Contacto",
-    "enterUrl": "Ingresa URL",
-    "enterText": "Ingresa Texto",
-    "contactInformation": "Información de Contacto",
-    "websiteUrl": "URL del Sitio Web",
-    "urlPlaceholder": "ejemplo.com o https://ejemplo.com",
-    "urlHelp": "Ingresa una URL de sitio web. Si no incluyes http://, agregaremos https:// automáticamente.",
-    "textContent": "Contenido de Texto",
-    "textPlaceholder": "Ingresa cualquier texto para generar código QR...",
-    "firstName": "Nombre",
-    "firstNamePlaceholder": "Juan",
-    "lastName": "Apellido",
-    "lastNamePlaceholder": "Pérez",
-    "phoneNumber": "Número de Teléfono",
-    "phonePlaceholder": "+1 (555) 123-4567",
-    "emailAddress": "Dirección de Correo",
-    "emailPlaceholder": "juan.perez@ejemplo.com",
-    "organization": "Organización",
-    "organizationPlaceholder": "Nombre de la Empresa",
-    "website": "Sitio Web",
-    "websitePlaceholder": "https://ejemplo.com",
-    "clearAllFields": "Limpiar Todos los Campos",
-    "generatedQrCode": "Código QR Generado",
-    "scanQrCode": "Escanea este código QR con tu dispositivo",
-    "fillFormPrompt": "Completa el formulario para generar tu código QR",
-    "download": "Descargar",
-    "copyData": "Copiar Datos",
-    "copied": "¡Copiado!",
-    "qrCodeData": "Datos del Código QR:",
-    "footerText": "Genera códigos QR al instante • No se almacenan datos • Gratis",
-    "qrCodeAlt": "Código QR Generado"
-  }
-};
-
-const appLocale = '{{APP_LOCALE}}';
-const browserLocale = navigator.languages?.[0] || navigator.language || 'en-US';
-const findMatchingLocale = (locale) => {
-  if (TRANSLATIONS[locale]) return locale;
-  const lang = locale.split('-')[0];
-  const match = Object.keys(TRANSLATIONS).find(key => key.startsWith(lang + '-'));
-  return match || 'en-US';
-};
-const locale = (appLocale !== '{{APP_LOCALE}}') ? findMatchingLocale(appLocale) : findMatchingLocale(browserLocale);
-const t = (key) => TRANSLATIONS[locale]?.[key] || TRANSLATIONS['en-US'][key] || key;
-
-const QRCodeGenerator = () => {
-  const [activeTab, setActiveTab] = useState('url');
-  const [qrData, setQrData] = useState('');
-  const [copied, setCopied] = useState(false);
-  const qrContainerRef = useRef(null);
-  const [tg, setTg] = useState(null);
-  
-  // Form states for different types
-  const [urlInput, setUrlInput] = useState('');
-  const [textInput, setTextInput] = useState('');
-  const [contactInfo, setContactInfo] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    organization: '',
-    url: ''
-  });
-
-  // Initialize Telegram WebApp
-  useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      const webapp = window.Telegram.WebApp;
-      setTg(webapp);
-      
-      // Expand to full height
-      webapp.expand();
-      
-      // Enable closing confirmation
-      webapp.enableClosingConfirmation();
-      
-      // Set header color
-      webapp.setHeaderColor('#ffffff');
-      webapp.setBackgroundColor('#f3f4f6');
-      
-      // Ready
-      webapp.ready();
-    }
-  }, []);
-
-  // QR Code generation using QRious library via CDN
-  const generateQRCode = async (text) => {
-    if (!text.trim()) {
-      if (qrContainerRef.current) {
-        qrContainerRef.current.innerHTML = '';
-      }
-      return;
-    }
-
-    try {
-      // Load QRious library dynamically
-      if (!window.QRious) {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
-        script.onload = () => {
-          createQR(text);
-        };
-        document.head.appendChild(script);
-      } else {
-        createQR(text);
-      }
-    } catch (error) {
-      console.error('Error loading QR library:', error);
-      // Fallback to Google Charts API
-      generateFallbackQR(text);
-    }
-  };
-
-  const createQR = (text) => {
-    if (!qrContainerRef.current) return;
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Shopping</title>
     
-    try {
-      // Clear previous QR code
-      qrContainerRef.current.innerHTML = '';
-      
-      // Create canvas element
-      const canvas = document.createElement('canvas');
-      qrContainerRef.current.appendChild(canvas);
-      
-      // Generate QR code
-      const qr = new window.QRious({
-        element: canvas,
-        value: text,
-        size: 300,
-        background: 'white',
-        foreground: 'black',
-        level: 'M'
-      });
-      
-      // Style the canvas
-      canvas.className = 'w-full h-auto rounded-xl shadow-lg bg-white';
-      canvas.style.maxWidth = '300px';
-      canvas.style.height = 'auto';
-      
-    } catch (error) {
-      console.error('Error creating QR code:', error);
-      generateFallbackQR(text);
-    }
-  };
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  const generateFallbackQR = (text) => {
-    if (!qrContainerRef.current) return;
+    <style>
+        :root {
+            /* Текущая тема по умолчанию (светлая) */
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --input-bg: #f9fafb;
+            
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            
+            --accent-green: #02962c;
+            --success: #10b981;
+            --danger: #ef4444;
+
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+            
+            /* Цвета для рекламы */
+            --ad-label-color: #b45309;
+            --ad-description-color: #111827;
+        }
+
+        /* Тёмная тема – применяется, когда на body есть класс .theme-dark */
+        body.theme-dark {
+            --bg-color: #18181b;
+            --card-bg: #27272a;
+            --input-bg: #3f3f46;
+            
+            --text-main: #fafafa;
+            --text-secondary: #a1a1aa;
+
+            --primary: #1d4ed8;
+            --primary-dark: #1e40af;
+            
+            --accent-green: #02962c;
+            --success: #10b981;
+            --danger: #ef4444;
+
+            --border: #3f3f46;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            /* Цвета для рекламы в тёмной теме */
+            --ad-label-color: #fbbf24;
+            --ad-description-color: #fafafa;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            padding: 16px 0 0 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            
+            /* Светлый фон без затемняющего изображения */
+            background-color: var(--bg-color);
+        }
+
+        .header { 
+            display: none; /* Полностью скрываем пустой header */
+        }
+        .header h3 { font-weight: 800; font-size: 24px; margin: 0; letter-spacing: -0.025em; }
+
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            user-select: none;
+        }
+
+        .theme-toggle span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tabs { 
+            display: flex; 
+            background: var(--card-bg); 
+            padding: 4px; 
+            border-radius: 16px; 
+            margin-bottom: 24px; 
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .tab { 
+            flex: 1; 
+            padding: 10px; 
+            text-align: center; 
+            border-radius: 12px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            color: var(--text-secondary); 
+            transition: all 0.2s ease;
+        }
+        .tab.active { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: var(--shadow-sm); 
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow-md); 
+            margin-bottom: 24px; 
+        }
+        
+        .tags-container { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .tags-container::-webkit-scrollbar { display: none; }
+
+        .tag { 
+            background: var(--primary); 
+            color: #ffffff;
+            padding: 8px 16px; 
+            border-radius: 100px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            white-space: nowrap; 
+            border: 1px solid var(--primary);
+            transition: all 0.2s;
+        }
+        .tag:active { background: var(--primary-dark); transform: scale(0.95); }
+        
+        #quick-templates-list .tag {
+            background: var(--accent-green); 
+            color: #ffffff;
+            border: 1px solid var(--accent-green);
+            font-weight: 700;
+        }
+        #quick-templates-list .tag:active { opacity: 0.8; transform: scale(0.95); }
+
+        .settings-btn { 
+            background: var(--input-bg); 
+            border: 1px solid var(--border); 
+            width: 40px; height: 40px;
+            border-radius: 12px; 
+            cursor: pointer; flex-shrink: 0; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            font-size: 20px;
+        }
+        .settings-btn:active { background: var(--border); color: white; }
+
+        .input-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        select, input[type="date"], input[type="text"], textarea { 
+            width: 100%; 
+            padding: 14px; 
+            border: 1px solid var(--border); 
+            border-radius: 14px; 
+            font-size: 15px; 
+            background: var(--input-bg); 
+            color: var(--text-main); 
+            font-family: inherit; 
+            margin-bottom: 16px; 
+            outline: none;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.25);
+        }
+        
+        textarea { resize: none; min-height: 80px; height: 80px; overflow: hidden; line-height: 1.4; }
+
+        .main-btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            border-radius: 16px; 
+            font-weight: 700; 
+            width: 100%; 
+            font-size: 16px; 
+            cursor: pointer; 
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s;
+        }
+        .main-btn:active { background: var(--primary-dark); transform: scale(0.99); }
+        
+        .shop-badge {
+            font-size: 10px;
+            background: rgba(37, 99, 235, 0.08);
+            color: #1d4ed8;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .settings-input-group { display: flex; gap: 8px; margin-bottom: 16px; }
+        .settings-input-group input { margin-bottom: 0 !important; flex: 1; }
+        .add-btn-small { width: 48px !important; height: 48px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 14px !important; flex-shrink: 0; }
+
+        .item-row {
+            position: relative;		
+            background: var(--card-bg); 
+            padding: 16px 20px; 
+            border-radius: 20px; 
+            margin-bottom: 12px; 
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        /* Анимация плавного мигания для новых элементов списка */
+        @keyframes gentle-pulse {
+            0% { 
+                background-color: var(--primary);
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+            }
+            50% { 
+                background-color: var(--primary-dark);
+                transform: scale(1.02);
+                box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+            }
+            100% { 
+                background-color: var(--card-bg);
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+            }
+        }
+        
+        /* Темная тема - адаптированные цвета для мигания */
+        @keyframes gentle-pulse-dark {
+            0% { 
+                background-color: rgba(29, 78, 216, 0.5);
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.6);
+            }
+            50% { 
+                background-color: rgba(30, 64, 175, 0.6);
+                transform: scale(1.02);
+                box-shadow: 0 0 0 10px rgba(29, 78, 216, 0);
+            }
+            100% { 
+                background-color: var(--card-bg);
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(29, 78, 216, 0);
+            }
+        }
+        
+        .item-row.new-item {
+            animation: gentle-pulse 2s ease-in-out;
+        }
+        
+        body.theme-dark .item-row.new-item {
+            animation: gentle-pulse-dark 2s ease-in-out;
+        }
+        .item-row > div {
+            width: 100%;
+        }
+        .item-row > div > div:first-child {
+            min-width: 0;
+        }
+        .item-row strong, .item-row span {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .progress-text { font-size: 10px; color: var(--success); font-weight: 800; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.03em; }
+        .author-badge { font-size: 11px; color: var(--primary); font-weight: 600; display: block; opacity: 0.9; }
+        
+        .row-actions { display: flex; gap: 10px; }
+        .btn-action { width: 40px; height: 40px; border-radius: 14px; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        
+        .btn-del { 
+            background: var(--danger) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 10px -2px rgba(239, 68, 68, 0.3);
+        }
+        .btn-del:active { transform: scale(0.95); background: #dc2626 !important; }
+        .icon-del { width: 20px; height: 20px; object-fit: contain; filter: brightness(0) invert(1); }
+
+        /* From Uiverse.io by axy1976 */ 
+        /* tooltip settings 👇 */
+        .btn-copy {
+          /* button */
+          --button-bg: #353434;
+          --button-hover-bg: #464646;
+          --button-text-color: #cccccc;
+          --button-hover-text-color: #8bb9fe;
+          --button-border-radius: 10px;
+          --button-diameter: 40px;
+          --button-outline-width: 1px;
+          --button-outline-color: rgb(141, 141, 141);
+          /* tooltip */
+          --tooltip-bg: #f4f3f3;
+          --toolptip-border-radius: 4px;
+          --tooltip-font-family: Menlo, Roboto Mono, monospace;
+          --tooltip-font-size: 12px;
+          --tootip-text-color: rgb(50, 50, 50);
+          --tooltip-padding-x: 7px;
+          --tooltip-padding-y: 7px;
+          --tooltip-offset: 8px;
+        }
+        .btn-copy {
+          box-sizing: border-box;
+          width: var(--button-diameter);
+          height: var(--button-diameter);
+          border-radius: var(--button-border-radius);
+          background-color: var(--button-bg);
+          color: var(--button-text-color);
+          border: none;
+          cursor: pointer;
+          position: relative;
+          outline: none;
+        }
+        .btn-copy > .cp-tooltip {
+          position: absolute;
+          opacity: 0;
+          visibility: 0;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          font: var(--tooltip-font-size) var(--tooltip-font-family);
+          color: var(--tootip-text-color);
+          background: var(--tooltip-bg);
+          padding: var(--tooltip-padding-y) var(--tooltip-padding-x);
+          border-radius: var(--toolptip-border-radius);
+          pointer-events: none;
+          transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .btn-copy > .cp-tooltip::before {
+          content: attr(data-text-initial);
+        }
+        .btn-copy > .cp-tooltip::after {
+          content: "";
+          position: absolute;
+          bottom: calc(var(--tooltip-padding-y) / 2 * -1);
+          width: var(--tooltip-padding-y);
+          height: var(--tooltip-padding-y);
+          background: inherit;
+          left: 50%;
+          transform: translateX(-50%) rotate(45deg);
+          z-index: -999;
+          pointer-events: none;
+        }
+        .btn-copy svg {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+        .cp-check-mark {
+          display: none;
+        }
+        /* actions */
+        .btn-copy:hover .cp-tooltip,
+        .btn-copy:focus:not(:focus-visible) .cp-tooltip {
+          opacity: 1;
+          visibility: visible;
+          top: calc((100% + var(--tooltip-offset)) * -1);
+        }
+        .btn-copy:focus:not(:focus-visible) .cp-tooltip::before {
+          content: attr(data-text-end);
+        }
+        .btn-copy:focus:not(:focus-visible) .cp-clipboard {
+          display: none;
+        }
+        .btn-copy:focus:not(:focus-visible) .cp-check-mark {
+          display: block;
+        }
+        .btn-copy:hover,
+        .btn-copy:focus {
+          background-color: var(--button-hover-bg);
+        }
+        .btn-copy:active {
+          outline: var(--button-outline-width) solid var(--button-outline-color);
+        }
+        .btn-copy:hover svg {
+          color: var(--button-hover-text-color);
+        }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.25); z-index: 1000; align-items: flex-end; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card-bg); width: 100%; border-radius: 28px 28px 0 0; padding: 32px 24px; max-height: 85vh; overflow-y: auto; color: var(--text-main); border-top: 1px solid var(--border); box-shadow: var(--shadow-lg); }
+        
+        .check-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 16px; }
+        .check-item span {
+            flex: 1;
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .completed { text-decoration: line-through; opacity: 0.5; }
+        
+        .manage-tag-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--input-bg); border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border); font-weight: 500; }
+        
+        input[type="checkbox"] { 
+            width: 22px; height: 22px; 
+            accent-color: var(--primary); 
+            border-radius: 6px;
+            cursor: pointer;
+        }
+		
+		.modal-meta-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: var(--input-bg);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.meta-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    min-width: 75px;
+}
+
+        .ad-banner-row {
+            width: 100%;
+            padding: 0 16px 12px 16px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .ad-banner-row.show {
+            max-height: 100px;
+            opacity: 1;
+        }
+
+        .ad-banner-row.hide {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .ad-banner-block {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #3b82f6;
+            padding: 6px 12px;
+            border-radius: 14px;
+            border: 1px solid #2563eb;
+            text-decoration: none;
+            width: 100%;
+            min-height: 48px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .ad-banner-block:active {
+            transform: scale(0.95);
+            background: #2563eb;
+        }
+
+        .ad-icon {
+            font-size: 20px; /* Иконка чуть крупнее */
+            flex-shrink: 0;
+        }
+
+        .ad-text-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Выравнивает дочерние элементы (label и description) по левому краю */
+            align-items: flex-start; 
+            line-height: 1.2;
+            overflow: hidden;
+            /* Убираем gap между иконкой и текстом или двигаем весь блок */
+            margin-left: -2px; 
+        }
+
+        .ad-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #ffffff; /* Белый цвет для видимости */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            /* Убираем возможные внешние отступы */
+            margin: 0;
+            padding: 0;
+            text-align: left; /* Гарантируем выравнивание текста внутри строки */
+        }
+
+        .ad-description {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff; /* Белый цвет для видимости */
+            /* Настройки для переноса длинного текста */
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Максимум 2 строки, затем троеточие (старые движки) */
+            line-clamp: 2;         /* Стандартное свойство */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        /* --- КОНТЕЙНЕР МАСКОТА --- */
+        .mascot-container {
+            position: fixed;
+            bottom: 20px;
+            right: -300px; /* Спрятан за экраном */
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            transition: right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        /* Позиция при появлении: сдвинуто правее (right: -10px) */
+        .mascot-container.show {
+            right: -10px; 
+        }
+
+        /* --- УМЕНЬШЕННЫЙ БАББЛ --- */
+        .mascot-bubble {
+            background: #2563eb;
+            color: white;
+            font-size: 12px;      /* Уменьшен текст */
+            font-weight: 700;
+            padding: 8px 16px;    /* Уменьшены отступы (размер баббла) */
+            border-radius: 40px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            border: 2px solid #1d4ed8;
+            
+            margin-right: 25px;   /* Центровка над авокадо */
+            margin-bottom: -5px;
+            z-index: 10;
+            
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition-delay: 0.4s;
+        }
+
+        .mascot-container.show .mascot-bubble {
+            transform: scale(1);
+        }
+
+        /* Хвостик баббла */
+        .mascot-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 20px;
+            border-width: 8px 8px 0; /* Уменьшен размер хвостика */
+            border-style: solid;
+            border-color: #2563eb transparent transparent transparent;
+            transform: rotate(-10deg) translateY(100%);
+        }
+
+        /* --- УМЕНЬШЕННОЕ И ПОВЕРНУТОЕ АВОКАДО --- */
+        .mascot-img {
+            width: 100px;  /* Размер уменьшен */
+            height: auto;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
+            z-index: 1;
+        }
+        
+        /* Анимация с наклоном вправо */
+        .mascot-container.show .mascot-img {
+            animation: idleWave 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes idleWave {
+            0% { 
+                /* Поворот на 15 градусов вправо */
+                transform: translateY(0) rotate(-15deg); 
+            }
+            100% { 
+                /* Качание до 22 градусов вправо */
+                transform: translateY(0px) rotate(0deg); 
+            }
+        }
+		
+		.new-badge-img {
+    position: absolute;
+    top: -20px;       /* Отступ сверху */
+    left: 2px;      /* Отступ слева */
+    width: 35px;     /* Размер картинки */
+    height: 35px;
+    z-index: 10;     /* Чтобы была поверх всего */
+    pointer-events: none; /* Чтобы клики проходили сквозь неё */
+}
+
+    </style>
+</head>
+<body>
+
+<div id="mascot-notification" class="mascot-container">
+    <div class="mascot-bubble" id="mascot-text">
+        список перемещён в архив
+    </div>
+    <img src="avocado.png" class="mascot-img" alt="Avocado">
+</div>
+
+<div class="header">
+</div>
+
+<div class="tabs">
+    <div id="tab-todo" class="tab active" onclick="switchTab('todo')" data-lang-key="todo">Текущие</div>
+    <div id="tab-done" class="tab" onclick="switchTab('done')" data-lang-key="done">Архив</div>
+    <div id="tab-recipes" class="tab" onclick="switchTab('recipes')" data-lang-key="recipes">Рецепты</div>
+</div>
+
+<div class="card" id="input-card">
+    <div onclick="toggleInputCard()" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 16px; user-select: none;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 700;" data-lang-key="createList">Создать список</h3>
+        <span id="toggle-icon" style="font-size: 20px; transition: transform 0.3s; transform: rotate(-90deg);">▶</span>
+    </div>
     
-    // Clear previous content
-    qrContainerRef.current.innerHTML = '';
+    <div id="input-card-content" style="display: none;">
+    <div class="tags-container">
+        <div id="quick-tags-list" style="display:flex; gap:8px;"></div>
+    </div>
     
-    // Create img element for fallback
-    const img = document.createElement('img');
-    const encodedData = encodeURIComponent(text);
-    img.src = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodedData}&choe=UTF-8`;
-    img.alt = t('qrCodeAlt');
-    img.className = 'w-full h-auto rounded-xl shadow-lg bg-white p-4';
-    img.style.maxWidth = '300px';
-    img.style.height = 'auto';
+    <div id="template-section" style="display:none; margin-bottom: 20px;">
+        <div class="input-label" style="color: var(--accent-green);">Применить шаблон</div>
+        <div id="quick-templates-list" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:5px; scrollbar-width: none;"></div>
+    </div>
+
+    <form id="shop-form">
+    <div style="display: flex; gap: 12px;">
+        <div style="flex: 1;">
+            <div class="input-label">Категория</div>
+            <select id="item-category"></select>
+        </div>
+        <div style="flex: 1;">
+            <div class="input-label">Дата</div>
+            <input type="date" id="buy-date">
+        </div>
+    </div>
     
-    // Add error handling for the fallback image
-    img.onerror = () => {
-      // If Google Charts also fails, try QR Server API
-      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedData}&format=png&margin=10`;
+    <div class="input-label">Магазин</div>
+    <select id="item-shop"></select>
+
+    <div class="input-label">Товары</div>
+    <textarea id="item-text" placeholder="Например:&#10;Молоко&#10;Хлеб"></textarea>
+
+    <button type="button" class="main-btn" style="background: var(--accent-green); margin-bottom: 12px; border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="openTagSettings()">
+        <span></span> Настройки
+    </button>
+
+    <button type="submit" class="main-btn">Добавить в список</button>
+</form>
+    </div>
+</div>
+
+<div class="card" id="recipe-card" style="display: none;">
+    <form id="recipe-form">
+        <div class="input-label">Название рецепта</div>
+        <input type="text" id="recipe-name" placeholder="Например: Борщ">
+        
+        <div class="input-label">Описание / Инструкция</div>
+        <textarea id="recipe-description" placeholder="Опишите как готовить..." style="height: 120px;"></textarea>
+        
+        <div class="input-label">Продукты для покупки</div>
+        <textarea id="recipe-ingredients" placeholder="Например:&#10;Свекла 2 шт&#10;Капуста 300г&#10;Морковь 1 шт" style="height: 100px;"></textarea>
+        
+        <button type="submit" class="main-btn">Сохранить рецепт</button>
+    </form>
+</div>
+
+ <!-- // Удалить style="display: none;" чтобы влючить рекламу -->
+<div class="ad-banner-row" id="ad-banner" style="display: none;">
+    <a href="https://your-link.com" target="_blank" class="ad-banner-block">
+        <span class="ad-icon">🟧</span>
+        <div class="ad-text-container">
+            <span class="ad-label">Реклама</span>
+            <span class="ad-description">Тут ваша реклама </span>
+        </div>
+    </a>
+</div>
+
+<div id="shop-list"></div>
+
+<div id="recipe-list" style="display: none;"></div>
+
+<div id="archive-actions" style="display: none; padding: 0 8px 24px;">
+    <button onclick="clearArchive()" class="main-btn" id="clear-archive-btn" style="background: var(--danger); box-shadow: none; opacity: 0.9;">🗑️ Очистить весь архив</button>
+</div>
+
+<div id="modal" class="modal" onclick="closeModal(event, 'modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 id="modal-title" style="margin: 0; font-size: 20px;">Состав списка</h3>
+        <div id="modal-items-list" style="margin-top: 10px;"></div>
+        <div id="modal-actions" style="margin-top:24px;"></div>
+    </div>
+</div>
+
+<div id="tag-modal" class="modal" onclick="closeModal(event, 'tag-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 style="font-weight: 800; margin-top: 0; margin-bottom: 24px; font-size: 20px;">Настройки</h3>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 32px;">
+            <div style="flex: 1;">
+                <div class="input-label">Язык</div>
+                <button type="button" class="theme-toggle" id="lang-toggle-btn" style="width: 100%; justify-content: center; padding: 14px;" onclick="toggleLanguage()">
+                    <span>🌐</span>
+                    <span id="lang-toggle-text">RU</span>
+                </button>
+            </div>
+            <div style="flex: 1;">
+                <div class="input-label">Тема оформления</div>
+                <button type="button" class="theme-toggle" id="theme-toggle-btn" onclick="toggleThemeFromButton()" style="width: 100%; justify-content: center; padding: 14px;">
+                    <span id="theme-toggle-icon">🌞</span>
+                    <span id="theme-toggle-text">Светлая</span>
+                </button>
+            </div>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
+        
+        <div class="input-label">Магазины</div>
+        <div class="settings-input-group">
+            <input type="text" id="new-shop-name" placeholder="Напр: ВкусВилл">
+            <button type="button" onclick="addNewShop()" class="main-btn add-btn-small">+</button>
+        </div>
+        <div id="manage-shops-list" style="margin-bottom: 32px;"></div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
+
+        <div class="input-label">Категории</div>
+        <div class="settings-input-group">
+            <input type="text" id="new-cat-name" placeholder="🛠 Стройка">
+            <button type="button" onclick="addNewCategory()" class="main-btn add-btn-small">+</button>
+        </div>
+        <div id="manage-cats-list" style="margin-bottom: 32px;"></div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
+
+        <div class="input-label">Быстрые теги (товары)</div>
+        <div class="settings-input-group">
+            <input type="text" id="new-tag-name" placeholder="Сыр">
+            <button type="button" onclick="addNewTag()" class="main-btn add-btn-small">+</button>
+        </div>
+        <div id="manage-tags-list" style="margin-bottom: 32px;"></div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
+
+        <div class="input-label" style="color: var(--accent-green);">Шаблоны</div>
+        <div class="settings-input-group">
+            <input type="text" id="new-temp-name" placeholder="Название">
+            <button type="button" onclick="addNewTemplate()" class="main-btn add-btn-small" style="background: var(--accent-green); color: white;">+</button>
+        </div>
+        <textarea id="new-temp-text" placeholder="Список товаров" style="margin-bottom:16px; height:80px;"></textarea>
+        <div id="manage-temps-list"></div>
+    </div>
+</div>
+
+<div id="recipe-modal" class="modal" onclick="closeModal(event, 'recipe-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 id="recipe-modal-title" style="margin: 0 0 16px 0; font-size: 22px; font-weight: 800;"></h3>
+        <div id="recipe-modal-description" style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;"></div>
+        
+        <div class="input-label">Продукты</div>
+        <div id="recipe-modal-ingredients" style="margin-bottom: 24px;"></div>
+        
+        <div id="recipe-modal-actions" style="margin-top:24px;"></div>
+    </div>
+</div>
+
+<div id="edit-modal" class="modal" onclick="closeModal(event, 'edit-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 style="margin: 0 0 24px 0; font-size: 20px; font-weight: 800;" id="edit-modal-title">Редактировать список</h3>
+        
+        <form id="edit-form">
+            <div style="display: flex; gap: 12px;">
+                <div style="flex: 1;">
+                    <div class="input-label" id="edit-category-label">Категория</div>
+                    <select id="edit-category"></select>
+                </div>
+                <div style="flex: 1;">
+                    <div class="input-label" id="edit-date-label">Дата</div>
+                    <input type="date" id="edit-date">
+                </div>
+            </div>
+            
+            <div class="input-label" id="edit-shop-label">Магазин</div>
+            <select id="edit-shop"></select>
+
+            <div class="input-label" id="edit-items-label">Товары</div>
+            <textarea id="edit-items" placeholder="Например:&#10;Молоко&#10;Хлеб" style="height: 150px;"></textarea>
+            
+            <button type="submit" class="main-btn" id="edit-save-btn">Сохранить изменения</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    const user = tg.initDataUnsafe?.user;
+    const myName = user?.first_name || "Друг";
+    const myId = user ? user.id.toString() : "guest";
+    
+    let startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get('tgWebAppStartParam');
+    const roomId = startParam || myId;
+
+    let currentTab = 'todo';
+    let dataCache = { todo: {}, done: {}, tags: {}, categories: {}, templates: {}, shops: {}, recipes: {} };
+    let activeNoteId = null;
+    let activeRecipeId = null;
+    let lastKnownTimestamp = Date.now();
+    let currentLang = localStorage.getItem('app-language') || 'ru';
+
+    // Тексты на двух языках
+    const translations = {
+        ru: {
+            // Вкладки
+            todo: 'Текущие',
+            done: 'Архив',
+            recipes: 'Рецепты',
+            settings: 'Настройки',
+            
+            // Заголовки
+            quickTemplates: 'Быстрые шаблоны',
+            categories: 'Категории',
+            shops: 'Магазины',
+            
+            // Форма создания списка
+            categoryLabel: 'Категория',
+            shopLabel: 'Магазин',
+            anyShop: '🛒 Любой магазин',
+            dateLabel: 'Дата',
+            itemsLabel: 'Товары',
+            itemsPlaceholder: 'Хлеб\nМолоко\nЯйца',
+            createBtn: 'Создать список',
+            createList: 'Создать список',
+            applyTemplate: 'Применить шаблон',
+            
+            // Форма рецепта
+            recipeNameLabel: 'Название рецепта',
+            recipeNamePlaceholder: 'Борщ',
+            recipeDescLabel: 'Описание',
+            recipeDescPlaceholder: 'Традиционный украинский суп',
+            recipeIngrLabel: 'Ингредиенты',
+            recipeIngrPlaceholder: 'Свекла - 2 шт\nКартофель - 3 шт',
+            addRecipeBtn: 'Добавить рецепт',
+            
+            // Настройки
+            langToggle: 'RU',
+            manageCats: 'Управление категориями',
+            manageShops: 'Управление магазинами',
+            clearArchive: 'Очистить архив',
+            clearArchiveBtn: '🗑️ Очистить весь архив',
+            themeDark: 'Тёмная',
+            themeLight: 'Светлая',
+            
+            // Модальные окна
+            addCategory: 'Добавить категорию',
+            categoryName: 'Название категории',
+            categoryPlaceholder: '🎮 Игры',
+            add: 'Добавить',
+            cancel: 'Отмена',
+            
+            addShop: 'Добавить магазин',
+            shopName: 'Название магазина',
+            shopPlaceholder: 'Пятёрочка',
+            
+            editList: 'Редактировать список',
+            save: 'Сохранить',
+            saveChanges: 'Сохранить изменения',
+            
+            // Уведомления
+            listCreated: 'Список создан',
+            listUpdated: 'Список обновлен',
+            listDeleted: 'Список удален',
+            movedToArchive: 'Перемещено в архив',
+            categoryAdded: 'Категория добавлена',
+            categoryDeleted: 'Категория удалена',
+            shopAdded: 'Магазин добавлен',
+            shopDeleted: 'Магазин удален',
+            archiveCleared: 'Архив очищен',
+            recipeDeleted: 'Рецепт удален',
+            recipeAdded: 'Рецепт добавлен',
+            
+            // Подтверждения
+            confirmDelete: 'Удалить?',
+            confirmClearArchive: 'Очистить архив?',
+            confirmDeleteRecipe: 'Удалить рецепт?',
+            
+            // Рецепты
+            ingredients: 'ингредиент',
+            ingredientsA: 'ингредиента',
+            ingredientsOv: 'ингредиентов',
+            noDescription: 'Описание не указано',
+            addToShopping: '🛒 Добавить продукты в список покупок',
+            addedFromRecipe: 'Продукты из рецепта',
+            addedToList: 'добавлены в список',
+            
+            // Прочее
+            author: 'Автор',
+            noLists: 'Нет списков',
+            noRecipes: 'Нет рецептов'
+        },
+        en: {
+            // Tabs
+            todo: 'Current',
+            done: 'Archive',
+            recipes: 'Recipes',
+            settings: 'Settings',
+            
+            // Headers
+            quickTemplates: 'Quick Templates',
+            categories: 'Categories',
+            shops: 'Shops',
+            
+            // Create list form
+            categoryLabel: 'Category',
+            shopLabel: 'Shop',
+            anyShop: '🛒 Any shop',
+            dateLabel: 'Date',
+            itemsLabel: 'Items',
+            itemsPlaceholder: 'Bread\nMilk\nEggs',
+            createBtn: 'Create list',
+            createList: 'Create list',
+            applyTemplate: 'Apply template',
+            
+            // Recipe form
+            recipeNameLabel: 'Recipe name',
+            recipeNamePlaceholder: 'Borscht',
+            recipeDescLabel: 'Description',
+            recipeDescPlaceholder: 'Traditional Ukrainian soup',
+            recipeIngrLabel: 'Ingredients',
+            recipeIngrPlaceholder: 'Beets - 2 pcs\nPotatoes - 3 pcs',
+            addRecipeBtn: 'Add recipe',
+            
+            // Settings
+            langToggle: 'EN',
+            manageCats: 'Manage categories',
+            manageShops: 'Manage shops',
+            clearArchive: 'Clear archive',
+            clearArchiveBtn: '🗑️ Clear entire archive',
+            themeDark: 'Dark',
+            themeLight: 'Light',
+            
+            // Modals
+            addCategory: 'Add category',
+            categoryName: 'Category name',
+            categoryPlaceholder: '🎮 Games',
+            add: 'Add',
+            cancel: 'Cancel',
+            
+            addShop: 'Add shop',
+            shopName: 'Shop name',
+            shopPlaceholder: 'Grocery Store',
+            
+            editList: 'Edit list',
+            save: 'Save',
+            saveChanges: 'Save changes',
+            
+            // Notifications
+            listCreated: 'List created',
+            listUpdated: 'List updated',
+            listDeleted: 'List deleted',
+            movedToArchive: 'Moved to archive',
+            categoryAdded: 'Category added',
+            categoryDeleted: 'Category deleted',
+            shopAdded: 'Shop added',
+            shopDeleted: 'Shop deleted',
+            archiveCleared: 'Archive cleared',
+            recipeDeleted: 'Recipe deleted',
+            recipeAdded: 'Recipe added',
+            
+            // Confirmations
+            confirmDelete: 'Delete?',
+            confirmClearArchive: 'Clear archive?',
+            confirmDeleteRecipe: 'Delete recipe?',
+            
+            // Recipes
+            ingredients: 'ingredient',
+            ingredientsA: 'ingredients',
+            ingredientsOv: 'ingredients',
+            noDescription: 'No description',
+            addToShopping: '🛒 Add products to shopping list',
+            addedFromRecipe: 'Products from recipe',
+            addedToList: 'added to list',
+            
+            // Other
+            author: 'Author',
+            noLists: 'No lists',
+            noRecipes: 'No recipes'
+        }
+    };
+
+    function t(key) {
+        return translations[currentLang][key] || key;
+    }
+
+    // -------- TELEGRAM CLOUD STORAGE --------
+    const CloudStorage = {
+        async setItem(key, value) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.setItem(key, JSON.stringify(value), (error, result) => {
+                    if (error) {
+                        console.error('CloudStorage setItem error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        },
+        async getItem(key) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.getItem(key, (error, result) => {
+                    if (error) {
+                        console.error('CloudStorage getItem error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result ? JSON.parse(result) : null);
+                    }
+                });
+            });
+        },
+        async removeItem(key) {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.removeItem(key, (error, result) => {
+                    if (error) {
+                        console.error('CloudStorage removeItem error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        },
+        async getKeys() {
+            return new Promise((resolve, reject) => {
+                tg.CloudStorage.getKeys((error, result) => {
+                    if (error) {
+                        console.error('CloudStorage getKeys error:', error);
+                        reject(error);
+                    } else {
+                        resolve(result || []);
+                    }
+                });
+            });
+        }
+    };
+
+    // Функции для работы с данными в Cloud Storage
+    async function loadAllData() {
+        try {
+            const [todo, done, tags, categories, templates, shops, recipes] = await Promise.all([
+                CloudStorage.getItem(`${roomId}_todo`),
+                CloudStorage.getItem(`${roomId}_done`),
+                CloudStorage.getItem(`${roomId}_tags`),
+                CloudStorage.getItem(`${roomId}_categories`),
+                CloudStorage.getItem(`${roomId}_templates`),
+                CloudStorage.getItem(`${roomId}_shops`),
+                CloudStorage.getItem(`${roomId}_recipes`)
+            ]);
+
+            dataCache = {
+                todo: todo || {},
+                done: done || {},
+                tags: tags || {},
+                categories: categories || {},
+                templates: templates || {},
+                shops: shops || {},
+                recipes: recipes || {}
+            };
+
+            renderItems();
+            renderQuickTags();
+            updateCategorySelect();
+            renderQuickTemplates();
+            updateShopSelect();
+            renderRecipes();
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    }
+
+    async function saveData(section, data) {
+        try {
+            dataCache[section] = data;
+            await CloudStorage.setItem(`${roomId}_${section}`, data);
+            
+            // Обновляем интерфейс
+            if (section === 'todo' || section === 'done') {
+                renderItems();
+            } else if (section === 'tags') {
+                renderQuickTags();
+                renderManageTags();
+            } else if (section === 'categories') {
+                updateCategorySelect();
+                renderManageCategories();
+            } else if (section === 'templates') {
+                renderQuickTemplates();
+                renderManageTemplates();
+            } else if (section === 'shops') {
+                updateShopSelect();
+                renderManageShops();
+            } else if (section === 'recipes') {
+                renderRecipes();
+            }
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
+    }
+
+    // Загружаем данные при старте
+    loadAllData();
+
+    // -------- НАСТРОЙКА ВРЕМЕНИ ПОКАЗА РЕКЛАМЫ --------
+    // Чтобы изменить время появления рекламы, измените число в строке ниже:
+    // 1 минута = 1 * 60 * 1000
+    // 3 минуты = 3 * 60 * 1000
+    // 5 минут = 5 * 60 * 1000
+    // 10 минут = 10 * 60 * 1000
+    // Показываем рекламу через 3 минуты после открытия приложения
+    setTimeout(() => {
+        showAd();
+    }, 1 * 60 * 1000); // 3 минуты = 180000 миллисекунд
+
+
+    // -------- МАСКОТ АВОКАДО --------
+    function showNotification(message, type = 'success') {
+        const mascot = document.getElementById('mascot-notification');
+        const mascotText = document.getElementById('mascot-text');
+        
+        // Устанавливаем текст сообщения
+        mascotText.textContent = message;
+        
+        // Показываем маскота
+        mascot.classList.add('show');
+        
+        // Вибрация (если доступна)
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+        }
+        
+        // Скрываем через 3.5 секунды
+        setTimeout(() => {
+            mascot.classList.remove('show');
+        }, 3500);
+    }
+
+    // -------- РЕКЛАМА --------
+    function showAd() {
+        const adBanner = document.getElementById('ad-banner');
+        
+        // Показываем рекламу и оставляем её видимой (не скрываем)
+        adBanner.classList.add('show');
+    }
+
+    // -------- ПЕРЕКЛЮЧЕНИЕ ЯЗЫКА --------
+    function toggleLanguage() {
+        currentLang = currentLang === 'ru' ? 'en' : 'ru';
+        localStorage.setItem('app-language', currentLang);
+        updateLanguage();
+        tg.HapticFeedback.impactOccurred('light');
+    }
+
+    function updateLanguage() {
+        // Обновляем кнопку языка
+        const langBtn = document.getElementById('lang-toggle-text');
+        if (langBtn) langBtn.innerText = t('langToggle');
+        
+        // Обновляем вкладки
+        document.querySelectorAll('.tab').forEach((tab, idx) => {
+            const keys = ['todo', 'done', 'recipes'];
+            tab.innerText = t(keys[idx]);
+        });
+        
+        // Обновляем элементы с data-lang-key
+        document.querySelectorAll('[data-lang-key]').forEach(el => {
+            const key = el.getAttribute('data-lang-key');
+            if (key) el.innerText = t(key);
+        });
+        
+        // Обновляем лейблы форм
+        updateFormLabels();
+        
+        // Обновляем placeholder'ы
+        updatePlaceholders();
+        
+        // Обновляем кнопки
+        updateButtons();
+        
+        // Обновляем селект магазина
+        updateShopSelect();
+        
+        // Обновляем заголовок шаблонов
+        const templateLabel = document.querySelector('#template-section .input-label');
+        if (templateLabel) templateLabel.innerText = t('applyTemplate');
+        
+        // Обновляем модальные окна
+        updateModalLanguage();
+        
+        // Перерисовываем текущую вкладку
+        if (currentTab === 'todo' || currentTab === 'done') {
+            renderNotes();
+        } else if (currentTab === 'recipes') {
+            renderRecipes();
+        }
+    }
+    
+    function updateFormLabels() {
+        // Находим все лейблы и обновляем их
+        const categoryLabel = document.querySelector('#item-category')?.previousElementSibling;
+        if (categoryLabel?.classList.contains('input-label')) categoryLabel.innerText = t('categoryLabel');
+        
+        const dateLabel = document.querySelector('#buy-date')?.previousElementSibling;
+        if (dateLabel?.classList.contains('input-label')) dateLabel.innerText = t('dateLabel');
+        
+        const shopLabel = document.querySelector('#item-shop')?.previousElementSibling;
+        if (shopLabel?.classList.contains('input-label')) shopLabel.innerText = t('shopLabel');
+        
+        const itemsLabel = document.querySelector('#item-text')?.previousElementSibling;
+        if (itemsLabel?.classList.contains('input-label')) itemsLabel.innerText = t('itemsLabel');
+        
+        const recipeNameLabel = document.querySelector('#recipe-name')?.previousElementSibling;
+        if (recipeNameLabel?.classList.contains('input-label')) recipeNameLabel.innerText = t('recipeNameLabel');
+        
+        const recipeDescLabel = document.querySelector('#recipe-description')?.previousElementSibling;
+        if (recipeDescLabel?.classList.contains('input-label')) recipeDescLabel.innerText = t('recipeDescLabel');
+        
+        const recipeIngrLabel = document.querySelector('#recipe-ingredients')?.previousElementSibling;
+        if (recipeIngrLabel?.classList.contains('input-label')) recipeIngrLabel.innerText = t('recipeIngrLabel');
+    }
+    
+    function updatePlaceholders() {
+        const itemText = document.getElementById('item-text');
+        if (itemText) itemText.placeholder = t('itemsPlaceholder');
+        
+        const recipeName = document.getElementById('recipe-name');
+        if (recipeName) recipeName.placeholder = t('recipeNamePlaceholder');
+        
+        const recipeDesc = document.getElementById('recipe-description');
+        if (recipeDesc) recipeDesc.placeholder = t('recipeDescPlaceholder');
+        
+        const recipeIngr = document.getElementById('recipe-ingredients');
+        if (recipeIngr) recipeIngr.placeholder = t('recipeIngrPlaceholder');
+    }
+    
+    function updateButtons() {
+        const createBtn = document.querySelector('#shop-form button[type="submit"]');
+        if (createBtn) createBtn.innerText = t('createBtn');
+        
+        const addRecipeBtn = document.querySelector('#recipe-form button[type="submit"]');
+        if (addRecipeBtn) addRecipeBtn.innerText = t('addRecipeBtn');
+        
+        const settingsBtn = document.querySelector('.main-btn[onclick="openTagSettings()"]');
+        if (settingsBtn) {
+            const btnText = currentLang === 'ru' ? '⚙️ Настройки' : '⚙️ Settings';
+            settingsBtn.innerHTML = btnText;
+        }
+        
+        const clearArchiveBtn = document.getElementById('clear-archive-btn');
+        if (clearArchiveBtn) clearArchiveBtn.innerText = t('clearArchiveBtn');
+    }
+    
+    function updateModalLanguage() {
+        // Обновляем заголовок модального окна настроек
+        const settingsTitle = document.querySelector('#tag-modal h3');
+        if (settingsTitle) settingsTitle.innerText = currentLang === 'ru' ? 'Настройки' : 'Settings';
+        
+        // Обновляем лейблы в настройках
+        const allLabels = document.querySelectorAll('#tag-modal .input-label');
+        const labelTexts = currentLang === 'ru' ? 
+            ['Язык', 'Тема оформления', 'Магазины', 'Категории', 'Быстрые теги (товары)', 'Шаблоны'] :
+            ['Language', 'Theme', 'Shops', 'Categories', 'Quick tags (items)', 'Templates'];
+        
+        allLabels.forEach((label, idx) => {
+            if (labelTexts[idx]) label.innerText = labelTexts[idx];
+        });
+        
+        // Обновляем placeholder'ы в настройках
+        const shopInput = document.getElementById('new-shop-name');
+        if (shopInput) shopInput.placeholder = currentLang === 'ru' ? 'Напр: ВкусВилл' : 'E.g.: Walmart';
+        
+        const catInput = document.getElementById('new-cat-name');
+        if (catInput) catInput.placeholder = currentLang === 'ru' ? '🛠 Стройка' : '🛠 Construction';
+        
+        const tagInput = document.getElementById('new-tag-name');
+        if (tagInput) tagInput.placeholder = currentLang === 'ru' ? 'Сыр' : 'Cheese';
+        
+        const tempNameInput = document.getElementById('new-temp-name');
+        if (tempNameInput) tempNameInput.placeholder = currentLang === 'ru' ? 'Название' : 'Name';
+        
+        const tempTextInput = document.getElementById('new-temp-text');
+        if (tempTextInput) tempTextInput.placeholder = currentLang === 'ru' ? 'Список товаров' : 'List of items';
+        
+        // Обновляем модальное окно редактирования
+        const editTitle = document.getElementById('edit-modal-title');
+        if (editTitle) editTitle.innerText = t('editList');
+        
+        const editCategoryLabel = document.getElementById('edit-category-label');
+        if (editCategoryLabel) editCategoryLabel.innerText = t('categoryLabel');
+        
+        const editDateLabel = document.getElementById('edit-date-label');
+        if (editDateLabel) editDateLabel.innerText = t('dateLabel');
+        
+        const editShopLabel = document.getElementById('edit-shop-label');
+        if (editShopLabel) editShopLabel.innerText = t('shopLabel');
+        
+        const editItemsLabel = document.getElementById('edit-items-label');
+        if (editItemsLabel) editItemsLabel.innerText = t('itemsLabel');
+        
+        const editSaveBtn = document.getElementById('edit-save-btn');
+        if (editSaveBtn) editSaveBtn.innerText = t('saveChanges');
+        
+        const editItemsTextarea = document.getElementById('edit-items');
+        if (editItemsTextarea) editItemsTextarea.placeholder = t('itemsPlaceholder');
+        
+        // Обновляем текст кнопки темы в зависимости от текущей темы
+        const isDark = document.body.classList.contains('theme-dark');
+        const themeText = document.getElementById('theme-toggle-text');
+        if (themeText) {
+            themeText.textContent = isDark ? t('themeDark') : t('themeLight');
+        }
+    }
+
+    // -------- ТЕМЫ --------
+    const THEME_KEY = 'family-shopping-theme';
+
+    function applyTheme(theme) {
+        const body = document.body;
+        const btnIcon = document.getElementById('theme-toggle-icon');
+        const btnText = document.getElementById('theme-toggle-text');
+
+        if (theme === 'dark') {
+            body.classList.add('theme-dark');
+            // Цвета Telegram для тёмной темы
+            tg.setHeaderColor('#18181b');
+            tg.setBackgroundColor('#18181b');
+            if (btnIcon && btnText) {
+                btnIcon.textContent = '🌙';
+                btnText.textContent = t('themeDark');
+            }
+        } else {
+            body.classList.remove('theme-dark');
+            // Цвета Telegram для светлой темы
+            tg.setHeaderColor('#f3f4f6');
+            tg.setBackgroundColor('#f3f4f6');
+            if (btnIcon && btnText) {
+                btnIcon.textContent = '🌞';
+                btnText.textContent = t('themeLight');
+            }
+        }
+
+        try {
+            localStorage.setItem(THEME_KEY, theme);
+        } catch (e) {}
+    }
+
+    // Инициализация темы при загрузке
+    (function initTheme() {
+        let saved = 'light';
+        try {
+            const fromStorage = localStorage.getItem(THEME_KEY);
+            if (fromStorage === 'light' || fromStorage === 'dark') {
+                saved = fromStorage;
+            }
+        } catch (e) {}
+        applyTheme(saved);
+    })();
+
+    // Инициализация языка при загрузке
+    (function initLanguage() {
+        const langBtn = document.getElementById('lang-toggle-text');
+        if (langBtn) langBtn.innerText = t('langToggle');
+        
+        // Применяем переводы ко всему интерфейсу
+        updateLanguage();
+    })();
+
+    // Функция переключения темы из кнопки
+    function toggleThemeFromButton() {
+        const isDark = document.body.classList.contains('theme-dark');
+        applyTheme(isDark ? 'light' : 'dark');
+        tg.HapticFeedback.impactOccurred('light');
+    }
+
+    // Обработчик клика по кнопке темы (дублирование для совместимости)
+    document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
+        const isDark = document.body.classList.contains('theme-dark');
+        applyTheme(isDark ? 'light' : 'dark');
+    });
+
+    // Функция сворачивания/разворачивания карточки создания списка
+    function toggleInputCard() {
+        const content = document.getElementById('input-card-content');
+        const icon = document.getElementById('toggle-icon');
+        
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.style.transform = 'rotate(0deg)';
+            icon.textContent = '▼';
+        } else {
+            content.style.display = 'none';
+            icon.style.transform = 'rotate(-90deg)';
+            icon.textContent = '▶';
+        }
+    }
+
+    const area = document.getElementById('item-text');
+    area.oninput = function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+    };
+
+    const recipeDesc = document.getElementById('recipe-description');
+    recipeDesc.oninput = function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+    };
+
+    const recipeIngr = document.getElementById('recipe-ingredients');
+    recipeIngr.oninput = function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+    };
+
+    const editItems = document.getElementById('edit-items');
+    editItems.oninput = function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+    };
+
+    function updateShopSelect() {
+        const select = document.getElementById('item-shop');
+        const currentVal = select.value;
+        select.innerHTML = `<option value="">${t('anyShop')}</option>`;
+        Object.keys(dataCache.shops).forEach(id => select.add(new Option(dataCache.shops[id].name, dataCache.shops[id].name)));
+        if(currentVal) select.value = currentVal;
+    }
+
+    function renderManageShops() {
+        const list = document.getElementById('manage-shops-list');
+        list.innerHTML = '';
+        Object.keys(dataCache.shops).forEach(id => {
+            list.innerHTML += `<div class="manage-tag-item"><span>${dataCache.shops[id].name}</span><button class="btn-action btn-del" onclick="deleteShop('${id}')"><img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del"></button></div>`;
+        });
+    }
+
+    async function deleteShop(id) {
+        const updatedShops = { ...dataCache.shops };
+        delete updatedShops[id];
+        await saveData('shops', updatedShops);
+    }
+
+    async function addNewShop() {
+        const input = document.getElementById('new-shop-name');
+        const name = input.value.trim();
+        if (name) {
+            const newId = 'shop_' + Date.now();
+            const updatedShops = { ...dataCache.shops, [newId]: { name } };
+            await saveData('shops', updatedShops);
+            input.value = '';
+        }
+    }
+
+    function updateCategorySelect() {
+        const select = document.getElementById('item-category');
+        const currentVal = select.value;
+        select.innerHTML = '';
+        const defaultCats = ["🍎 Продукты", "🏠 Дом", "💊 Аптека", "👕 Одежда", "📦 Другое"];
+        const hasDbCats = Object.keys(dataCache.categories).length > 0;
+        if (!hasDbCats) defaultCats.forEach(c => select.add(new Option(c, c)));
+        else Object.keys(dataCache.categories).forEach(id => select.add(new Option(dataCache.categories[id].name, dataCache.categories[id].name)));
+        if(currentVal) select.value = currentVal;
+    }
+
+    function renderManageCategories() {
+        const list = document.getElementById('manage-cats-list');
+        list.innerHTML = '';
+        Object.keys(dataCache.categories).forEach(id => {
+            list.innerHTML += `<div class="manage-tag-item"><span>${dataCache.categories[id].name}</span><button class="btn-action btn-del" onclick="deleteCategory('${id}')"><img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del"></button></div>`;
+        });
+    }
+
+    async function deleteCategory(id) {
+        const updatedCategories = { ...dataCache.categories };
+        delete updatedCategories[id];
+        await saveData('categories', updatedCategories);
+    }
+
+    async function addNewCategory() {
+        const input = document.getElementById('new-cat-name');
+        const name = input.value.trim();
+        if (name) {
+            const newId = 'cat_' + Date.now();
+            const updatedCategories = { ...dataCache.categories, [newId]: { name } };
+            await saveData('categories', updatedCategories);
+            input.value = '';
+        }
+    }
+
+    function renderQuickTags() {
+        const list = document.getElementById('quick-tags-list');
+        list.innerHTML = '';
+        Object.keys(dataCache.tags).forEach(id => {
+            const div = document.createElement('div');
+            div.className = 'tag';
+            div.innerText = `+ ${dataCache.tags[id].name}`;
+            div.onclick = () => { area.value += (area.value ? '\n' : '') + dataCache.tags[id].name; area.oninput(); };
+            list.appendChild(div);
+        });
+    }
+
+    function renderManageTags() {
+        const list = document.getElementById('manage-tags-list');
+        list.innerHTML = '';
+        Object.keys(dataCache.tags).forEach(id => {
+            list.innerHTML += `<div class="manage-tag-item"><span>${dataCache.tags[id].name}</span><button class="btn-action btn-del" onclick="deleteTag('${id}')"><img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del"></button></div>`;
+        });
+    }
+
+    async function deleteTag(id) {
+        const updatedTags = { ...dataCache.tags };
+        delete updatedTags[id];
+        await saveData('tags', updatedTags);
+    }
+
+    async function addNewTag() {
+        const input = document.getElementById('new-tag-name');
+        const name = input.value.trim();
+        if (name) {
+            const newId = 'tag_' + Date.now();
+            const updatedTags = { ...dataCache.tags, [newId]: { name } };
+            await saveData('tags', updatedTags);
+            input.value = '';
+        }
+    }
+
+    function renderQuickTemplates() {
+        const list = document.getElementById('quick-templates-list');
+        const section = document.getElementById('template-section');
+        list.innerHTML = '';
+        const keys = Object.keys(dataCache.templates);
+        if (keys.length > 0) {
+            section.style.display = 'block';
+            keys.forEach(id => {
+                const div = document.createElement('div');
+                div.className = 'tag'; 
+                div.innerText = `📋 ${dataCache.templates[id].name}`;
+                div.onclick = () => { area.value = dataCache.templates[id].text; area.oninput(); };
+                list.appendChild(div);
+            });
+        } else section.style.display = 'none';
+    }
+
+    function renderManageTemplates() {
+        const list = document.getElementById('manage-temps-list');
+        list.innerHTML = '';
+        Object.keys(dataCache.templates).forEach(id => {
+            list.innerHTML += `<div class="manage-tag-item"><span>${dataCache.templates[id].name}</span><button class="btn-action btn-del" onclick="deleteTemplate('${id}')"><img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del"></button></div>`;
+        });
+    }
+
+    async function deleteTemplate(id) {
+        const updatedTemplates = { ...dataCache.templates };
+        delete updatedTemplates[id];
+        await saveData('templates', updatedTemplates);
+    }
+
+    async function addNewTemplate() {
+        const n = document.getElementById('new-temp-name');
+        const t = document.getElementById('new-temp-text');
+        const name = n.value.trim();
+        const text = t.value.trim();
+        if (name && text) {
+            const newId = 'temp_' + Date.now();
+            const updatedTemplates = { ...dataCache.templates, [newId]: { name, text } };
+            await saveData('templates', updatedTemplates);
+            n.value = '';
+            t.value = '';
+            showNotification('Шаблон добавлен', 'success');
+        }
+    }
+
+    function openTagSettings() { 
+        document.getElementById('tag-modal').style.display = 'flex'; 
+        renderManageShops(); renderManageCategories(); renderManageTags(); renderManageTemplates();
+    }
+
+    document.getElementById('shop-form').onsubmit = async (e) => {
+    e.preventDefault();
+    let text = area.value.trim();
+    if (!text) return;
+
+    // Регулярные выражения для поиска данных
+    const catMatch = text.match(/📍 Категория:\s*(.+)/);
+    const shopMatch = text.match(/🛒 Магазин:\s*(.+)/);
+    const dateMatch = text.match(/📅 Дата:\s*(.+)/);
+
+    // Очищаем текст от служебных строк, чтобы остались только товары
+    let cleanText = text
+        .replace(/📍 Категория:.*\n?/, '')
+        .replace(/🛒 Магазин:.*\n?/, '')
+        .replace(/📅 Дата:.*\n?/, '')
+        .replace(/──────────────\n?/, '')
+        .replace(/^[✅▫️]\s*/gm, '') // Убираем иконки статуса
+        .trim();
+
+    const items = cleanText.split('\n').map(t => ({ text: t.trim(), checked: false })).filter(t => t.text);
+    
+    const newId = 'note_' + Date.now();
+    const updatedTodo = { 
+        ...dataCache.todo, 
+        [newId]: {
+            items, 
+            category: catMatch ? catMatch[1].trim() : document.getElementById('item-category').value, 
+            shop: shopMatch ? shopMatch[1].trim() : document.getElementById('item-shop').value,
+            date: dateMatch ? dateMatch[1].trim() : document.getElementById('buy-date').value,
+            author: myName, 
+            timestamp: Date.now()
+        }
     };
     
-    qrContainerRef.current.appendChild(img);
-  };
-
-  const formatUrl = (url) => {
-    if (!url.trim()) return '';
+    await saveData('todo', updatedTodo);
     
-    // Add protocol if missing
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return 'https://' + url;
-    }
-    return url;
-  };
-
-  const generateVCard = (contact) => {
-    const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${contact.firstName} ${contact.lastName}
-N:${contact.lastName};${contact.firstName};;;
-ORG:${contact.organization}
-TEL:${contact.phone}
-EMAIL:${contact.email}
-URL:${contact.url}
-END:VCARD`;
-    return vcard;
-  };
-
-  useEffect(() => {
-    let data = '';
-    
-    switch (activeTab) {
-      case 'url':
-        data = formatUrl(urlInput);
-        break;
-      case 'text':
-        data = textInput;
-        break;
-      case 'contact':
-        if (contactInfo.firstName || contactInfo.lastName || contactInfo.phone || contactInfo.email) {
-          data = generateVCard(contactInfo);
-        }
-        break;
-      default:
-        data = '';
-    }
-    
-    setQrData(data);
-    generateQRCode(data);
-  }, [activeTab, urlInput, textInput, contactInfo]);
-
-  const downloadQRCode = () => {
-    if (!qrData) return;
-    
-    const canvas = qrContainerRef.current?.querySelector('canvas');
-    const img = qrContainerRef.current?.querySelector('img');
-    
-    if (canvas) {
-      // For Telegram Mini App, try to share or download
-      const dataUrl = canvas.toDataURL();
-      
-      if (tg) {
-        // Show haptic feedback
-        tg.HapticFeedback?.impactOccurred('medium');
-        
-        // Try to download
-        const link = document.createElement('a');
-        link.download = `qr-code-${activeTab}.png`;
-        link.href = dataUrl;
-        link.click();
-      } else {
-        // Regular download
-        const link = document.createElement('a');
-        link.download = `qr-code-${activeTab}.png`;
-        link.href = dataUrl;
-        link.click();
-      }
-    } else if (img) {
-      // Download from image
-      const link = document.createElement('a');
-      link.download = `qr-code-${activeTab}.png`;
-      link.href = img.src;
-      link.click();
-      
-      if (tg) {
-        tg.HapticFeedback?.impactOccurred('medium');
-      }
-    }
-  };
-
-  const copyToClipboard = async () => {
-    if (qrData) {
-      try {
-        await navigator.clipboard.writeText(qrData);
-        setCopied(true);
-        
-        // Haptic feedback for Telegram
-        if (tg) {
-          tg.HapticFeedback?.notificationOccurred('success');
-        }
-        
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy text: ', err);
-        
-        if (tg) {
-          tg.HapticFeedback?.notificationOccurred('error');
-        }
-      }
-    }
-  };
-
-  const resetForm = () => {
-    setUrlInput('');
-    setTextInput('');
-    setContactInfo({
-      firstName: '',
-      lastName: '',
-      phone: '',
-      email: '',
-      organization: '',
-      url: ''
-    });
-    setQrData('');
-    if (qrContainerRef.current) {
-      qrContainerRef.current.innerHTML = '';
-    }
-  };
-
-  const tabs = [
-    { id: 'url', label: t('urlTab'), icon: Link },
-    { id: 'text', label: t('textTab'), icon: MessageSquare },
-    { id: 'contact', label: t('contactTab'), icon: User }
-  ];
-
-  // Get theme colors from Telegram
-  const bgColor = tg?.themeParams?.bg_color || '#f3f4f6';
-  const textColor = tg?.themeParams?.text_color || '#1f2937';
-  const buttonColor = tg?.themeParams?.button_color || '#8b5cf6';
-  const buttonTextColor = tg?.themeParams?.button_text_color || '#ffffff';
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 p-2 sm:p-4" style={{ backgroundColor: bgColor }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-4 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl mb-3 sm:mb-4" style={{ backgroundColor: buttonColor }}>
-            <QrCode className="w-6 h-6 sm:w-8 sm:h-8 text-white" style={{ color: buttonTextColor }} />
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2" style={{ color: textColor }}>
-            {t('appTitle')}
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-lg px-4" style={{ color: textColor, opacity: 0.7 }}>{t('appDescription')}</p>
-        </div>
-
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Tab Navigation */}
-          <div className="border-b border-gray-200 overflow-x-auto">
-            <nav className="flex min-w-max">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                    <span className="whitespace-nowrap">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          <div className="p-4 sm:p-8">
-            <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
-              {/* Input Section */}
-              <div className="space-y-4 sm:space-y-6">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-4">
-                  {activeTab === 'url' && t('enterUrl')}
-                  {activeTab === 'text' && t('enterText')}
-                  {activeTab === 'contact' && t('contactInformation')}
-                </h2>
-
-                {/* URL Input */}
-                {activeTab === 'url' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('websiteUrl')}
-                    </label>
-                    <input
-                      type="url"
-                      value={urlInput}
-                      onChange={(e) => setUrlInput(e.target.value)}
-                      placeholder={t('urlPlaceholder')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {t('urlHelp')}
-                    </p>
-                  </div>
-                )}
-
-                {/* Text Input */}
-                {activeTab === 'text' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('textContent')}
-                    </label>
-                    <textarea
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      placeholder={t('textPlaceholder')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
-                    />
-                  </div>
-                )}
-
-                {/* Contact Input */}
-                {activeTab === 'contact' && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t('firstName')}
-                        </label>
-                        <input
-                          type="text"
-                          value={contactInfo.firstName}
-                          onChange={(e) => setContactInfo({...contactInfo, firstName: e.target.value})}
-                          placeholder={t('firstNamePlaceholder')}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t('lastName')}
-                        </label>
-                        <input
-                          type="text"
-                          value={contactInfo.lastName}
-                          onChange={(e) => setContactInfo({...contactInfo, lastName: e.target.value})}
-                          placeholder={t('lastNamePlaceholder')}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('phoneNumber')}
-                      </label>
-                      <input
-                        type="tel"
-                        value={contactInfo.phone}
-                        onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
-                        placeholder={t('phonePlaceholder')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('emailAddress')}
-                      </label>
-                      <input
-                        type="email"
-                        value={contactInfo.email}
-                        onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
-                        placeholder={t('emailPlaceholder')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('organization')}
-                      </label>
-                      <input
-                        type="text"
-                        value={contactInfo.organization}
-                        onChange={(e) => setContactInfo({...contactInfo, organization: e.target.value})}
-                        placeholder={t('organizationPlaceholder')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('website')}
-                      </label>
-                      <input
-                        type="url"
-                        value={contactInfo.url}
-                        onChange={(e) => setContactInfo({...contactInfo, url: e.target.value})}
-                        placeholder={t('websitePlaceholder')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  onClick={resetForm}
-                  className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium"
-                >
-                  {t('clearAllFields')}
-                </button>
-              </div>
-
-              {/* QR Code Display Section */}
-              <div className="flex flex-col items-center space-y-4 sm:space-y-6">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">{t('generatedQrCode')}</h2>
-                
-                <div className="bg-gray-50 rounded-2xl p-4 sm:p-8 w-full max-w-sm">
-                  {qrData ? (
-                    <div className="text-center">
-                      <div ref={qrContainerRef} className="flex justify-center">
-                        {/* QR code will be dynamically inserted here */}
-                      </div>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-3 sm:mt-4">
-                        {t('scanQrCode')}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 sm:py-16">
-                      <QrCode className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
-                      <p className="text-sm sm:text-base text-gray-500">
-                        {t('fillFormPrompt')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {qrData && (
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-sm">
-                    <button
-                      onClick={downloadQRCode}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg text-sm sm:text-base"
-                    >
-                      <Download className="w-4 h-4" />
-                      {t('download')}
-                    </button>
-                    
-                    <button
-                      onClick={copyToClipboard}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium text-sm sm:text-base"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-4 h-4 text-green-600" />
-                          {t('copied')}
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          {t('copyData')}
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {qrData && (
-                  <div className="w-full max-w-sm">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">{t('qrCodeData')}</h3>
-                    <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600 max-h-32 overflow-y-auto">
-                      <pre className="whitespace-pre-wrap break-words">{qrData}</pre>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center mt-8 text-gray-500 text-sm">
-          <p>{t('footerText')}</p>
-        </div>
-      </div>
-    </div>
-  );
+    e.target.reset(); 
+    area.style.height = '80px';
 };
 
-export default QRCodeGenerator;
+    function renderItems() {
+        const list = document.getElementById('shop-list');
+        list.innerHTML = '';
+        const activeData = currentTab === 'todo' ? dataCache.todo : dataCache.done;
+        const sortedKeys = Object.keys(activeData).sort((a, b) => activeData[b].timestamp - activeData[a].timestamp);
+
+        sortedKeys.forEach(id => {
+            const note = activeData[id];
+            const checkedCount = note.items.filter(i => i.checked).length;
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            
+            // Добавляем класс для анимации, если элемент новый (добавлен за последние 3 секунды)
+            const isNew = note.timestamp > lastKnownTimestamp;
+            if (isNew) {
+                div.classList.add('new-item');
+                // Убираем класс после завершения анимации
+                setTimeout(() => {
+                    div.classList.remove('new-item');
+                }, 2000);
+            }
+            
+            div.onclick = () => openNote(id);
+div.innerHTML = `
+    ${isNew ? '<img src="new.png" class="new-badge-img">' : ''} <div style="width: 100%;">
+        <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="display:flex; align-items:center; gap: 6px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">${note.category}</div>
+                            ${note.shop ? `<span class="shop-badge">${note.shop}</span>` : ""}
+                        </div>
+                        <div class="row-actions">
+                            <button class="btn-copy" onclick="event.stopPropagation(); copyToClipboard('${id}')">
+                              <span data-text-end="Скопировано!" data-text-initial="Скопировать список" class="cp-tooltip"></span>
+                              <span>
+                                <svg xml:space="preserve" style="enable-background:new 0 0 512 512" viewBox="0 0 6.35 6.35" y="0" x="0" height="20" width="20" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" class="cp-clipboard">
+                                  <g>
+                                    <path fill="currentColor" d="M2.43.265c-.3 0-.548.236-.573.53h-.328a.74.74 0 0 0-.735.734v3.822a.74.74 0 0 0 .735.734H4.82a.74.74 0 0 0 .735-.734V1.529a.74.74 0 0 0-.735-.735h-.328a.58.58 0 0 0-.573-.53zm0 .529h1.49c.032 0 .049.017.049.049v.431c0 .032-.017.049-.049.049H2.43c-.032 0-.05-.017-.05-.049V.843c0-.032.018-.05.05-.05zm-.901.53h.328c.026.292.274.528.573.528h1.49a.58.58 0 0 0 .573-.529h.328a.2.2 0 0 1 .206.206v3.822a.2.2 0 0 1-.206.205H1.53a.2.2 0 0 1-.206-.205V1.529a.2.2 0 0 1 .206-.206z"></path>
+                                  </g>
+                                </svg>
+                                <svg xml:space="preserve" style="enable-background:new 0 0 512 512" viewBox="0 0 24 24" y="0" x="0" height="18" width="18" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" class="cp-check-mark">
+                                  <g>
+                                    <path data-original="#000000" fill="currentColor" d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121z"></path>
+                                  </g>
+                                </svg>
+                              </span>
+                            </button>
+                            <button class="btn-action" style="background: var(--primary); color: white;" onclick="event.stopPropagation(); editNote('${id}')">✏️</button>
+                            <button class="btn-action btn-del" onclick="event.stopPropagation(); deleteNote('${id}')">
+                                <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del">
+                            </button>
+                        </div>
+                    </div>
+                    <strong style="font-size: 17px; display: block; margin-bottom: 6px;">${note.items[0].text} ${note.items.length > 1 ? '(+' + (note.items.length-1) + ')' : ''}</strong>
+                    <div class="progress-text">${checkedCount} из ${note.items.length} КУПЛЕНО</div>
+                    <span class="author-badge">${note.date ? '📅 ' + note.date : ''}</span>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+		
+	}
+        
+       
+
+    function openNote(id) {
+    activeNoteId = id;
+    const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[id];
+    if (!note) return;
+
+    const modalTitle = document.getElementById('modal-title');
+    modalTitle.innerText = "Состав списка";
+    
+    // Удаляем старый блок метаданных, если он есть
+    const oldMeta = document.getElementById('modal-meta-box');
+    if (oldMeta) oldMeta.remove();
+    
+    // Формируем новый блок метаданных в стиле дизайна приложения
+    const metaHtml = `
+        <div id="modal-meta-box" class="modal-meta-container">
+            <div class="meta-item">
+                <span class="meta-label">📍 Категория:</span>
+                <span>${note.category}</span>
+            </div>
+            ${note.shop ? `
+            <div class="meta-item">
+                <span class="meta-label">🛒 Магазин:</span>
+                <span>${note.shop}</span>
+            </div>` : ''}
+            ${note.date ? `
+            <div class="meta-item">
+                <span class="meta-label">📅 Дата:</span>
+                <span>${note.date}</span>
+            </div>` : ''}
+        </div>
+    `;
+    
+    // Вставляем блок сразу после заголовка
+    modalTitle.insertAdjacentHTML('afterend', metaHtml);
+
+    // Очищаем и заполняем список товаров
+    const listDiv = document.getElementById('modal-items-list');
+    listDiv.innerHTML = '';
+    note.items.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'check-item';
+        div.innerHTML = `
+            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${idx}, this.checked)">
+            <span class="${item.checked ? 'completed' : ''}">${item.text}</span>
+        `;
+        listDiv.appendChild(div);
+    });
+
+    document.getElementById('modal-actions').innerHTML = `
+        <button class="main-btn" onclick="moveNote()">
+            ${currentTab === 'todo' ? '✅ В архив' : '↩️ Вернуть'}
+        </button>
+    `;
+    
+    document.getElementById('modal').style.display = 'flex';
+}
+
+    async function toggleCheck(idx, val) {
+        const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
+        note.items[idx].checked = val;
+        
+        const section = currentTab === 'todo' ? 'todo' : 'done';
+        const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+        updatedData[activeNoteId] = note;
+        
+        await saveData(section, updatedData);
+    }
+
+    async function moveNote() {
+        const target = currentTab === 'todo' ? 'done' : 'todo';
+        const data = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
+        
+        // Добавляем в целевую секцию
+        const newId = 'note_' + Date.now();
+        const updatedTarget = { ...(target === 'todo' ? dataCache.todo : dataCache.done), [newId]: data };
+        await saveData(target, updatedTarget);
+        
+        // Удаляем из текущей секции
+        const updatedCurrent = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+        delete updatedCurrent[activeNoteId];
+        await saveData(currentTab, updatedCurrent);
+        
+        closeModal(null, 'modal');
+        if (currentTab === 'todo') {
+            showNotification('Список перемещен в архив', 'success');
+        } else {
+            showNotification('Список восстановлен', 'success');
+        }
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tab-todo').classList.toggle('active', tab === 'todo');
+        document.getElementById('tab-done').classList.toggle('active', tab === 'done');
+        document.getElementById('tab-recipes').classList.toggle('active', tab === 'recipes');
+        
+        document.getElementById('input-card').style.display = tab === 'todo' ? 'block' : 'none';
+        document.getElementById('recipe-card').style.display = tab === 'recipes' ? 'block' : 'none';
+        document.getElementById('archive-actions').style.display = tab === 'done' ? 'block' : 'none';
+        
+        document.getElementById('shop-list').style.display = (tab === 'todo' || tab === 'done') ? 'block' : 'none';
+        document.getElementById('recipe-list').style.display = tab === 'recipes' ? 'block' : 'none';
+        
+        if (tab === 'todo' || tab === 'done') {
+            renderItems();
+        } else if (tab === 'recipes') {
+            renderRecipes();
+        }
+    }
+
+    function copyToClipboard(id) {
+    const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[id];
+    
+    // Формируем заголовок с метаданными
+    let header = `📍 Категория: ${note.category}\n`;
+    if (note.shop) header += `🛒 Магазин: ${note.shop}\n`;
+    if (note.date) header += `📅 Дата: ${note.date}\n`;
+    header += `──────────────\n`;
+
+    // Собираем список товаров
+    const itemsText = note.items.map(i => `${i.checked ? '✅' : '▫️'} ${i.text}`).join('\n');
+    
+    const fullText = header + itemsText;
+    
+    navigator.clipboard.writeText(fullText).then(() => {
+        tg.HapticFeedback.impactOccurred('medium');
+    });
+}
+
+    async function clearArchive() {
+        tg.showConfirm(t('confirmClearArchive'), async (ok) => {
+            if (ok) {
+                await saveData('done', {});
+                showNotification(t('archiveCleared'), 'success');
+            }
+        });
+    }
+
+    async function deleteNote(id) {
+        tg.showConfirm(t('confirmDelete'), async (ok) => {
+            if (ok) {
+                const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+                delete updatedData[id];
+                await saveData(currentTab, updatedData);
+                showNotification(t('listDeleted'), 'success');
+            }
+        });
+    }
+
+    function closeModal(e, id) { if(!e || e.target.id === id) document.getElementById(id).style.display = 'none'; }
+
+    // Рецепты
+    document.getElementById('recipe-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('recipe-name').value.trim();
+        const description = document.getElementById('recipe-description').value.trim();
+        const ingredients = document.getElementById('recipe-ingredients').value.trim();
+        
+        if (!name) return;
+        
+        const ingredientsList = ingredients.split('\n').map(t => t.trim()).filter(t => t);
+        
+        const newId = 'recipe_' + Date.now();
+        const updatedRecipes = {
+            ...dataCache.recipes,
+            [newId]: {
+                name,
+                description,
+                ingredients: ingredientsList,
+                author: myName,
+                timestamp: Date.now()
+            }
+        };
+        
+        await saveData('recipes', updatedRecipes);
+        
+        e.target.reset();
+        document.getElementById('recipe-description').style.height = '120px';
+        document.getElementById('recipe-ingredients').style.height = '100px';
+    };
+
+    function renderRecipes() {
+        const list = document.getElementById('recipe-list');
+        list.innerHTML = '';
+        const sortedKeys = Object.keys(dataCache.recipes).sort((a, b) => dataCache.recipes[b].timestamp - dataCache.recipes[a].timestamp);
+
+        sortedKeys.forEach(id => {
+            const recipe = dataCache.recipes[id];
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            div.onclick = () => openRecipe(id);
+            
+            // Правильное множественное число для разных языков
+            let ingredientText;
+            if (currentLang === 'ru') {
+                ingredientText = recipe.ingredients.length === 1 ? 'ингредиент' : 
+                                recipe.ingredients.length < 5 ? 'ингредиента' : 'ингредиентов';
+            } else {
+                ingredientText = recipe.ingredients.length === 1 ? 'ingredient' : 'ingredients';
+            }
+            
+            div.innerHTML = `
+                <div style="flex: 1;">
+                    <strong style="font-size: 17px; display: block; margin-bottom: 6px;">🍳 ${recipe.name}</strong>
+                    <div style="font-size: 13px; color: var(--text-secondary);">
+                        ${recipe.ingredients.length} ${ingredientText}
+                    </div>
+                </div>
+                <button class="btn-action btn-del" onclick="event.stopPropagation(); deleteRecipe('${id}')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" class="icon-del">
+                </button>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function openRecipe(id) {
+        activeRecipeId = id;
+        const recipe = dataCache.recipes[id];
+        
+        document.getElementById('recipe-modal-title').innerText = recipe.name;
+        document.getElementById('recipe-modal-description').innerText = recipe.description || t('noDescription');
+        
+        const ingredientsDiv = document.getElementById('recipe-modal-ingredients');
+        ingredientsDiv.innerHTML = '';
+        
+        recipe.ingredients.forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.className = 'check-item';
+            div.innerHTML = `<span>• ${item}</span>`;
+            ingredientsDiv.appendChild(div);
+        });
+        
+        document.getElementById('recipe-modal-actions').innerHTML = `
+            <button class="main-btn" onclick="addRecipeToShopping()" style="background: var(--accent-green);">
+                ${t('addToShopping')}
+            </button>
+        `;
+        
+        document.getElementById('recipe-modal').style.display = 'flex';
+    }
+
+    async function addRecipeToShopping() {
+        const recipe = dataCache.recipes[activeRecipeId];
+        const items = recipe.ingredients.map(text => ({ text, checked: false }));
+        
+        const newId = 'note_' + Date.now();
+        const updatedTodo = {
+            ...dataCache.todo,
+            [newId]: {
+                items,
+                category: "🍎 Продукты",
+                shop: "",
+                author: myName,
+                timestamp: Date.now(),
+                date: ""
+            }
+        };
+        
+        await saveData('todo', updatedTodo);
+        closeModal(null, 'recipe-modal');
+        const message = currentLang === 'ru' ? 
+            `Продукты из рецепта "${recipe.name}" добавлены в список` :
+            `Products from recipe "${recipe.name}" added to list`;
+        showNotification(message, 'success');
+        switchTab('todo');
+    }
+
+    async function deleteRecipe(id) {
+        tg.showConfirm(t('confirmDeleteRecipe'), async (ok) => {
+            if (ok) {
+                const updatedRecipes = { ...dataCache.recipes };
+                delete updatedRecipes[id];
+                await saveData('recipes', updatedRecipes);
+                showNotification(t('recipeDeleted'), 'success');
+            }
+        });
+    }
+
+    // Редактирование списка покупок
+    function editNote(id) {
+        activeNoteId = id;
+        const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[id];
+        
+        // Обновляем селекты категорий и магазинов
+        updateEditCategorySelect();
+        updateEditShopSelect();
+        
+        // Заполняем форму текущими данными
+        document.getElementById('edit-category').value = note.category || '';
+        document.getElementById('edit-shop').value = note.shop || '';
+        document.getElementById('edit-date').value = note.date || '';
+        document.getElementById('edit-items').value = note.items.map(i => i.text).join('\n');
+        
+        // Автоматически подстраиваем высоту textarea
+        const textarea = document.getElementById('edit-items');
+        textarea.style.height = "auto";
+        textarea.style.height = (textarea.scrollHeight) + "px";
+        
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function updateEditCategorySelect() {
+        const select = document.getElementById('edit-category');
+        select.innerHTML = '';
+        const defaultCats = ["🍎 Продукты", "🏠 Дом", "💊 Аптека", "👕 Одежда", "📦 Другое"];
+        const hasDbCats = Object.keys(dataCache.categories).length > 0;
+        if (!hasDbCats) defaultCats.forEach(c => select.add(new Option(c, c)));
+        else Object.keys(dataCache.categories).forEach(id => select.add(new Option(dataCache.categories[id].name, dataCache.categories[id].name)));
+    }
+
+    function updateEditShopSelect() {
+        const select = document.getElementById('edit-shop');
+        select.innerHTML = `<option value="">${t('anyShop')}</option>`;
+        Object.keys(dataCache.shops).forEach(id => select.add(new Option(dataCache.shops[id].name, dataCache.shops[id].name)));
+    }
+
+    document.getElementById('edit-form').onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const text = document.getElementById('edit-items').value.trim();
+        if (!text) return;
+        
+        const items = text.split('\n').map(t => t.trim()).filter(t => t).map(text => {
+            // Сохраняем статус checked если товар остался в списке
+            const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId];
+            const existingItem = note.items.find(i => i.text === text);
+            return { text, checked: existingItem ? existingItem.checked : false };
+        });
+        
+        const updatedNote = {
+            items,
+            category: document.getElementById('edit-category').value,
+            shop: document.getElementById('edit-shop').value,
+            date: document.getElementById('edit-date').value,
+            author: (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId].author,
+            timestamp: (currentTab === 'todo' ? dataCache.todo : dataCache.done)[activeNoteId].timestamp
+        };
+        
+        const section = currentTab === 'todo' ? 'todo' : 'done';
+        const updatedData = { ...(currentTab === 'todo' ? dataCache.todo : dataCache.done) };
+        updatedData[activeNoteId] = updatedNote;
+        
+        await saveData(section, updatedData);
+        closeModal(null, 'edit-modal');
+        showNotification(t('listUpdated'), 'success');
+    };
+</script>
+</body>
+</html>
