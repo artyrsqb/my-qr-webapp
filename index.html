@@ -914,7 +914,8 @@
             listCreated: 'Список создан',
             listUpdated: 'Список обновлен',
             listDeleted: 'Список удален',
-            movedToArchive: 'Перемещено в архив',
+            movedToArchive: 'Список перемещен в архив',
+            movedFromArchive: 'Список восстановлен',
             categoryAdded: 'Категория добавлена',
             categoryDeleted: 'Категория удалена',
             shopAdded: 'Магазин добавлен',
@@ -922,6 +923,7 @@
             archiveCleared: 'Архив очищен',
             recipeDeleted: 'Рецепт удален',
             recipeAdded: 'Рецепт добавлен',
+            templateAdded: 'Шаблон добавлен',
             
             // Подтверждения
             confirmDelete: 'Удалить?',
@@ -940,7 +942,10 @@
             // Прочее
             author: 'Автор',
             noLists: 'Нет списков',
-            noRecipes: 'Нет рецептов'
+            noRecipes: 'Нет рецептов',
+            categoryMeta: '📍 Категория:',
+            shopMeta: '🛒 Магазин:',
+            dateMeta: '📅 Дата:',
         },
         en: {
             // Tabs
@@ -1002,7 +1007,8 @@
             listCreated: 'List created',
             listUpdated: 'List updated',
             listDeleted: 'List deleted',
-            movedToArchive: 'Moved to archive',
+            movedToArchive: 'List moved to archive',
+            movedFromArchive: 'List restored',
             categoryAdded: 'Category added',
             categoryDeleted: 'Category deleted',
             shopAdded: 'Shop added',
@@ -1010,6 +1016,7 @@
             archiveCleared: 'Archive cleared',
             recipeDeleted: 'Recipe deleted',
             recipeAdded: 'Recipe added',
+            templateAdded: 'Template added',
             
             // Confirmations
             confirmDelete: 'Delete?',
@@ -1028,7 +1035,10 @@
             // Other
             author: 'Author',
             noLists: 'No lists',
-            noRecipes: 'No recipes'
+            noRecipes: 'No recipes',
+            categoryMeta: '📍 Category:',
+            shopMeta: '🛒 Shop:',
+            dateMeta: '📅 Date:',
         }
     };
 
@@ -1424,12 +1434,6 @@
         tg.HapticFeedback.impactOccurred('light');
     }
 
-    // Обработчик клика по кнопке темы (дублирование для совместимости)
-    document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
-        const isDark = document.body.classList.contains('theme-dark');
-        applyTheme(isDark ? 'light' : 'dark');
-    });
-
     // Функция сворачивания/разворачивания карточки создания списка
     function toggleInputCard() {
         const content = document.getElementById('input-card-content');
@@ -1618,7 +1622,7 @@
             await saveData('templates', updatedTemplates);
             n.value = '';
             t.value = '';
-            showNotification('Шаблон добавлен', 'success');
+            showNotification(t('templateAdded'), 'success');
         }
     }
 
@@ -1632,16 +1636,16 @@
     let text = area.value.trim();
     if (!text) return;
 
-    // Регулярные выражения для поиска данных
-    const catMatch = text.match(/📍 Категория:\s*(.+)/);
-    const shopMatch = text.match(/🛒 Магазин:\s*(.+)/);
-    const dateMatch = text.match(/📅 Дата:\s*(.+)/);
+    // Регулярные выражения для поиска данных (поддержка обоих языков)
+    const catMatch = text.match(/📍\s*(?:Категория|Category):\s*(.+)/);
+    const shopMatch = text.match(/🛒\s*(?:Магазин|Shop):\s*(.+)/);
+    const dateMatch = text.match(/📅\s*(?:Дата|Date):\s*(.+)/);
 
     // Очищаем текст от служебных строк, чтобы остались только товары
     let cleanText = text
-        .replace(/📍 Категория:.*\n?/, '')
-        .replace(/🛒 Магазин:.*\n?/, '')
-        .replace(/📅 Дата:.*\n?/, '')
+        .replace(/📍\s*(?:Категория|Category):.*\n?/, '')
+        .replace(/🛒\s*(?:Магазин|Shop):.*\n?/, '')
+        .replace(/📅\s*(?:Дата|Date):.*\n?/, '')
         .replace(/──────────────\n?/, '')
         .replace(/^[✅▫️]\s*/gm, '') // Убираем иконки статуса
         .trim();
@@ -1747,17 +1751,17 @@ div.innerHTML = `
     const metaHtml = `
         <div id="modal-meta-box" class="modal-meta-container">
             <div class="meta-item">
-                <span class="meta-label">📍 Категория:</span>
+                <span class="meta-label">${t('categoryMeta')}</span>
                 <span>${note.category}</span>
             </div>
             ${note.shop ? `
             <div class="meta-item">
-                <span class="meta-label">🛒 Магазин:</span>
+                <span class="meta-label">${t('shopMeta')}</span>
                 <span>${note.shop}</span>
             </div>` : ''}
             ${note.date ? `
             <div class="meta-item">
-                <span class="meta-label">📅 Дата:</span>
+                <span class="meta-label">${t('dateMeta')}</span>
                 <span>${note.date}</span>
             </div>` : ''}
         </div>
@@ -1815,9 +1819,9 @@ div.innerHTML = `
         
         closeModal(null, 'modal');
         if (currentTab === 'todo') {
-            showNotification('Список перемещен в архив', 'success');
+            showNotification(t('movedToArchive'), 'success');
         } else {
-            showNotification('Список восстановлен', 'success');
+            showNotification(t('movedFromArchive'), 'success');
         }
     }
 
@@ -1845,9 +1849,9 @@ div.innerHTML = `
     const note = (currentTab === 'todo' ? dataCache.todo : dataCache.done)[id];
     
     // Формируем заголовок с метаданными
-    let header = `📍 Категория: ${note.category}\n`;
-    if (note.shop) header += `🛒 Магазин: ${note.shop}\n`;
-    if (note.date) header += `📅 Дата: ${note.date}\n`;
+    let header = `${t('categoryMeta')} ${note.category}\n`;
+    if (note.shop) header += `${t('shopMeta')} ${note.shop}\n`;
+    if (note.date) header += `${t('dateMeta')} ${note.date}\n`;
     header += `──────────────\n`;
 
     // Собираем список товаров
