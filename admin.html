@@ -417,6 +417,152 @@
             margin-right: 8px;
         }
 
+        .server-list-item {
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .server-list-item:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 5px 25px rgba(0, 255, 255, 0.2);
+        }
+
+        .server-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .server-list-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .server-list-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn {
+            padding: 10px 20px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .edit-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .delete-btn {
+            padding: 10px 20px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            border-radius: 8px;
+            color: #ff0000;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content-edit {
+            background: var(--card-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header-edit {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title-edit {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--neon-cyan);
+            transform: rotate(90deg);
+        }
+
         .form-card {
             background: var(--card-bg);
             border: 2px solid rgba(255, 0, 255, 0.2);
@@ -563,7 +709,7 @@
             </form>
 
             <div class="back-link">
-                <a href="game-servers-catalog.html">← Вернуться на главную</a>
+                <a href="index.html">← Вернуться на главную</a>
             </div>
         </div>
     </div>
@@ -582,6 +728,7 @@
             <div class="admin-tabs">
                 <button class="admin-tab active" onclick="switchTab('dashboard')">Дашборд</button>
                 <button class="admin-tab" onclick="switchTab('moderation')">Модерация</button>
+                <button class="admin-tab" onclick="switchTab('allServers')">Все сервера</button>
                 <button class="admin-tab" onclick="switchTab('addServer')">Добавить сервер</button>
             </div>
 
@@ -611,6 +758,13 @@
             <div id="moderationTab" class="admin-content">
                 <div id="pendingServers">
                     <!-- Pending servers will be inserted here -->
+                </div>
+            </div>
+
+            <!-- All Servers Tab -->
+            <div id="allServersTab" class="admin-content">
+                <div id="allServersList">
+                    <!-- All servers will be inserted here -->
                 </div>
             </div>
 
@@ -658,6 +812,67 @@
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Server Modal -->
+    <div id="editServerModal" class="modal">
+        <div class="modal-content-edit">
+            <div class="modal-header-edit">
+                <h2 class="modal-title-edit">Редактировать сервер</h2>
+                <button class="close-modal-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editServerForm">
+                <input type="hidden" id="editServerId">
+                <div class="form-group">
+                    <label class="form-label">Название сервера *</label>
+                    <input type="text" class="form-input" id="editServerName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Игра *</label>
+                    <select class="form-select" id="editServerGame" required>
+                        <option value="">Выберите игру</option>
+                        <option value="Minecraft">Minecraft</option>
+                        <option value="CS:GO">CS:GO</option>
+                        <option value="Rust">Rust</option>
+                        <option value="GTA V">GTA V</option>
+                        <option value="ARMA 3">ARMA 3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">IP адрес *</label>
+                    <input type="text" class="form-input" id="editServerIp" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Текущее кол-во игроков</label>
+                    <input type="number" class="form-input" id="editServerPlayers" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Максимум игроков *</label>
+                    <input type="number" class="form-input" id="editServerMaxPlayers" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Описание *</label>
+                    <textarea class="form-textarea" id="editServerDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Полное описание</label>
+                    <textarea class="form-textarea" id="editServerFullDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL изображения</label>
+                    <input type="text" class="form-input" id="editServerImage" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Теги (через запятую)</label>
+                    <input type="text" class="form-input" id="editServerTags">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Особенности (через запятую)</label>
+                    <input type="text" class="form-input" id="editServerFeatures">
+                </div>
+                <button type="submit" class="form-btn">Сохранить изменения</button>
+            </form>
         </div>
     </div>
 
@@ -724,9 +939,128 @@
             } else if (tabName === 'moderation') {
                 document.getElementById('moderationTab').classList.add('active');
                 loadPendingServers();
+            } else if (tabName === 'allServers') {
+                document.getElementById('allServersTab').classList.add('active');
+                loadAllServers();
             } else if (tabName === 'addServer') {
                 document.getElementById('addServerTab').classList.add('active');
             }
+        }
+
+        // Load all servers
+        function loadAllServers() {
+            const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+            const container = document.getElementById('allServersList');
+            
+            if (servers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📂</div>
+                        <h3>Нет серверов в каталоге</h3>
+                        <p>Добавьте первый сервер</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = servers.map(server => `
+                <div class="server-list-item">
+                    <div class="server-list-header">
+                        <div class="server-list-title">${server.name}</div>
+                        <div class="server-list-actions">
+                            <button class="edit-btn" onclick="openEditModal(${server.id})">✎ Редактировать</button>
+                            <button class="delete-btn" onclick="deleteServer(${server.id})">✕ Удалить</button>
+                        </div>
+                    </div>
+                    <div class="server-detail"><strong>Игра:</strong> ${server.game}</div>
+                    <div class="server-detail"><strong>IP адрес:</strong> ${server.ip}</div>
+                    <div class="server-detail"><strong>Игроки:</strong> ${server.players}/${server.maxPlayers}</div>
+                    <div class="server-detail"><strong>Описание:</strong> ${server.description}</div>
+                    <div class="server-detail"><strong>Теги:</strong> ${server.tags ? server.tags.join(', ') : 'Нет'}</div>
+                </div>
+            `).join('');
+        }
+
+        // Open edit modal
+        function openEditModal(serverId) {
+            const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+            const server = servers.find(s => s.id === serverId);
+            
+            if (!server) return;
+
+            document.getElementById('editServerId').value = server.id;
+            document.getElementById('editServerName').value = server.name;
+            document.getElementById('editServerGame').value = server.game;
+            document.getElementById('editServerIp').value = server.ip;
+            document.getElementById('editServerPlayers').value = server.players || 0;
+            document.getElementById('editServerMaxPlayers').value = server.maxPlayers;
+            document.getElementById('editServerDescription').value = server.description;
+            document.getElementById('editServerFullDescription').value = server.fullDescription || '';
+            document.getElementById('editServerImage').value = server.image || '';
+            document.getElementById('editServerTags').value = server.tags ? server.tags.join(', ') : '';
+            document.getElementById('editServerFeatures').value = server.features ? server.features.join(', ') : '';
+
+            document.getElementById('editServerModal').classList.add('active');
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editServerModal').classList.remove('active');
+        }
+
+        // Edit server form submit
+        document.getElementById('editServerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+            const serverId = parseInt(document.getElementById('editServerId').value);
+            const serverIndex = servers.findIndex(s => s.id === serverId);
+            
+            if (serverIndex === -1) return;
+
+            const gameTagMap = {
+                'Minecraft': 'minecraft',
+                'CS:GO': 'cs',
+                'Rust': 'rust',
+                'GTA V': 'gta',
+                'ARMA 3': 'arma'
+            };
+
+            const game = document.getElementById('editServerGame').value;
+            const tags = document.getElementById('editServerTags').value.split(',').map(t => t.trim()).filter(t => t);
+            const features = document.getElementById('editServerFeatures').value.split(',').map(f => f.trim()).filter(f => f);
+
+            servers[serverIndex] = {
+                ...servers[serverIndex],
+                name: document.getElementById('editServerName').value,
+                game: game,
+                gameTag: gameTagMap[game] || 'other',
+                ip: document.getElementById('editServerIp').value,
+                players: parseInt(document.getElementById('editServerPlayers').value) || 0,
+                maxPlayers: parseInt(document.getElementById('editServerMaxPlayers').value),
+                description: document.getElementById('editServerDescription').value,
+                fullDescription: document.getElementById('editServerFullDescription').value || document.getElementById('editServerDescription').value,
+                image: document.getElementById('editServerImage').value || servers[serverIndex].image,
+                tags: tags.length > 0 ? tags : servers[serverIndex].tags,
+                features: features.length > 0 ? features : servers[serverIndex].features
+            };
+
+            localStorage.setItem('servers', JSON.stringify(servers));
+            closeEditModal();
+            loadAllServers();
+            alert('Сервер успешно обновлен!');
+        });
+
+        // Delete server
+        function deleteServer(serverId) {
+            if (!confirm('Вы уверены что хотите удалить этот сервер?')) return;
+            
+            let servers = JSON.parse(localStorage.getItem('servers') || '[]');
+            servers = servers.filter(s => s.id !== serverId);
+            localStorage.setItem('servers', JSON.stringify(servers));
+            
+            loadAllServers();
+            alert('Сервер удален');
         }
 
         // Pending servers data (в реальном приложении это должно приходить с сервера)
@@ -819,7 +1153,39 @@
             if (!server) return;
 
             if (confirm(`Одобрить сервер "${server.name}"?`)) {
-                // В реальном приложении здесь был бы запрос к API
+                // Load existing servers from localStorage
+                let servers = JSON.parse(localStorage.getItem('servers') || '[]');
+                
+                const gameTagMap = {
+                    'Minecraft': 'minecraft',
+                    'CS:GO': 'cs',
+                    'Rust': 'rust',
+                    'GTA V': 'gta',
+                    'ARMA 3': 'arma'
+                };
+
+                // Find max ID to generate new one
+                const maxId = servers.length > 0 ? Math.max(...servers.map(s => s.id)) : 0;
+
+                const newServer = {
+                    id: maxId + 1,
+                    name: server.name,
+                    game: server.game,
+                    gameTag: gameTagMap[server.game] || 'other',
+                    description: server.description,
+                    fullDescription: server.description,
+                    players: 0,
+                    maxPlayers: server.maxPlayers,
+                    online: true,
+                    ip: server.ip,
+                    tags: server.tags.split(',').map(t => t.trim()).filter(t => t),
+                    features: ["Сервер одобрен администрацией", "Активное комьюнити"],
+                    image: `https://images.unsplash.com/photo-${Date.now() % 10 === 0 ? '1614732414444' : '1555864326'}-096e5f1122d5?w=800&h=450&fit=crop`
+                };
+
+                servers.push(newServer);
+                localStorage.setItem('servers', JSON.stringify(servers));
+                
                 pendingServers = pendingServers.filter(s => s.id !== serverId);
                 savePendingServers();
                 loadPendingServers();
@@ -844,18 +1210,37 @@
             e.preventDefault();
             const formData = new FormData(e.target);
             
-            const newServer = {
-                name: formData.get('name'),
-                game: formData.get('game'),
-                ip: formData.get('ip'),
-                players: parseInt(formData.get('players')) || 0,
-                maxPlayers: parseInt(formData.get('maxPlayers')),
-                description: formData.get('description'),
-                tags: formData.get('tags')
+            let servers = JSON.parse(localStorage.getItem('servers') || '[]');
+            
+            const gameTagMap = {
+                'Minecraft': 'minecraft',
+                'CS:GO': 'cs',
+                'Rust': 'rust',
+                'GTA V': 'gta',
+                'ARMA 3': 'arma'
             };
 
-            // В реальном приложении здесь был бы запрос к API
-            console.log('New server added:', newServer);
+            const game = formData.get('game');
+            const maxId = servers.length > 0 ? Math.max(...servers.map(s => s.id)) : 0;
+
+            const newServer = {
+                id: maxId + 1,
+                name: formData.get('name'),
+                game: game,
+                gameTag: gameTagMap[game] || 'other',
+                description: formData.get('description'),
+                fullDescription: formData.get('description'),
+                players: parseInt(formData.get('players')) || 0,
+                maxPlayers: parseInt(formData.get('maxPlayers')),
+                online: true,
+                ip: formData.get('ip'),
+                tags: formData.get('tags').split(',').map(t => t.trim()).filter(t => t),
+                features: ["Новый сервер", "Активный"],
+                image: `https://images.unsplash.com/photo-${Date.now() % 2 === 0 ? '1614732414444' : '1555864326'}-096e5f1122d5?w=800&h=450&fit=crop`
+            };
+
+            servers.push(newServer);
+            localStorage.setItem('servers', JSON.stringify(servers));
             
             e.target.reset();
             alert('Сервер успешно добавлен в каталог!');
