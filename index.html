@@ -837,28 +837,73 @@
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Профиль</h2>
+                <h2 class="modal-title" id="profileModalTitle">Профиль</h2>
                 <button class="close-btn" onclick="closeModal('profileModal')">&times;</button>
             </div>
-            <div class="profile-info">
-                <div class="profile-item">
-                    <span class="profile-label">Имя пользователя:</span>
-                    <span class="profile-value">Admin</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">Email:</span>
-                    <span class="profile-value"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dcbdb8b1b5b29cbbbdb1b9b4a9bef2aea9">[email&#160;protected]</a></span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">Добавлено серверов:</span>
-                    <span class="profile-value">12</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">На модерации:</span>
-                    <span class="profile-value">3</span>
-                </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" style="display: none;">
+                <form onsubmit="loginUser(event)">
+                    <div class="form-group">
+                        <label class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-input" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-input" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="form-btn">Войти</button>
+                    <button type="button" class="form-btn form-btn-secondary" onclick="showRegisterForm()" style="margin-top: 10px;">Создать аккаунт</button>
+                </form>
             </div>
-            <button class="form-btn" onclick="openAddServerModal()">+ Добавить сервер</button>
+
+            <!-- Register Form -->
+            <div id="registerForm" style="display: none;">
+                <form onsubmit="registerUser(event)">
+                    <div class="form-group">
+                        <label class="form-label">Имя пользователя *</label>
+                        <input type="text" class="form-input" id="registerUsername" required minlength="3">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-input" id="registerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Пароль *</label>
+                        <input type="password" class="form-input" id="registerPassword" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Повторите пароль *</label>
+                        <input type="password" class="form-input" id="registerPasswordConfirm" required minlength="6">
+                    </div>
+                    <button type="submit" class="form-btn">Зарегистрироваться</button>
+                    <button type="button" class="form-btn form-btn-secondary" onclick="showLoginForm()" style="margin-top: 10px;">Уже есть аккаунт</button>
+                </form>
+            </div>
+
+            <!-- Profile Info -->
+            <div id="profileInfo" style="display: none;">
+                <div class="profile-info">
+                    <div class="profile-item">
+                        <span class="profile-label">Имя пользователя:</span>
+                        <span class="profile-value" id="profileUsername">-</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Email:</span>
+                        <span class="profile-value" id="profileEmail">-</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Добавлено серверов:</span>
+                        <span class="profile-value" id="profileServersCount">0</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">На модерации:</span>
+                        <span class="profile-value" id="profilePendingCount">0</span>
+                    </div>
+                </div>
+                <button class="form-btn" onclick="openAddServerModal()">+ Добавить сервер</button>
+                <button class="form-btn form-btn-secondary" onclick="logoutUser()" style="margin-top: 10px;">Выйти</button>
+            </div>
         </div>
     </div>
 
@@ -1111,12 +1156,139 @@
         // Pending servers data
         let pendingServers = JSON.parse(localStorage.getItem('pendingServers') || '[]');
 
+        // User system
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+        // Check if user is logged in on page load
+        function checkUserLogin() {
+            if (currentUser) {
+                updateProfileButton();
+            }
+        }
+
+        function updateProfileButton() {
+            // Could update button text or add indicator
+        }
+
+        function showLoginForm() {
+            document.getElementById('profileModalTitle').textContent = 'Вход';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('profileInfo').style.display = 'none';
+        }
+
+        function showRegisterForm() {
+            document.getElementById('profileModalTitle').textContent = 'Регистрация';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('profileInfo').style.display = 'none';
+        }
+
+        function showProfileInfo() {
+            document.getElementById('profileModalTitle').textContent = 'Профиль';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('profileInfo').style.display = 'block';
+            
+            // Update profile data
+            document.getElementById('profileUsername').textContent = currentUser.username;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            
+            // Count user's servers
+            const userServers = pendingServers.filter(s => s.submittedBy === currentUser.username);
+            document.getElementById('profilePendingCount').textContent = userServers.length;
+            document.getElementById('profileServersCount').textContent = currentUser.serversAdded || 0;
+        }
+
+        function loginUser(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showProfileInfo();
+                updateProfileButton();
+            } else {
+                alert('Неверный логин или пароль!');
+            }
+        }
+
+        function registerUser(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+
+            // Validation
+            if (password !== passwordConfirm) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+
+            if (users.find(u => u.username === username)) {
+                alert('Пользователь с таким именем уже существует!');
+                return;
+            }
+
+            if (users.find(u => u.email === email)) {
+                alert('Пользователь с таким email уже существует!');
+                return;
+            }
+
+            // Create new user
+            const newUser = {
+                username: username,
+                email: email,
+                password: password,
+                serversAdded: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Auto login
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showProfileInfo();
+            updateProfileButton();
+            alert('Регистрация успешна! Добро пожаловать!');
+        }
+
+        function logoutUser() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            closeModal('profileModal');
+            updateProfileButton();
+            alert('Вы вышли из аккаунта');
+        }
+
         // Modal functions
         function openProfile() {
+            if (currentUser) {
+                showProfileInfo();
+            } else {
+                showLoginForm();
+            }
             document.getElementById('profileModal').classList.add('active');
         }
 
         function openAddServerModal() {
+            if (!currentUser) {
+                alert('Необходимо войти в аккаунт для добавления серверов!');
+                closeModal('profileModal');
+                setTimeout(() => {
+                    openProfile();
+                }, 300);
+                return;
+            }
             closeModal('profileModal');
             document.getElementById('addServerModal').classList.add('active');
         }
@@ -1137,6 +1309,12 @@
         // User add server form
         document.getElementById('addServerForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            if (!currentUser) {
+                alert('Необходимо войти в аккаунт!');
+                return;
+            }
+            
             const formData = new FormData(e.target);
             
             const newPendingServer = {
@@ -1147,7 +1325,7 @@
                 maxPlayers: parseInt(formData.get('maxPlayers')),
                 description: formData.get('description'),
                 tags: formData.get('tags'),
-                submittedBy: 'CurrentUser',
+                submittedBy: currentUser.username,
                 submittedDate: new Date().toISOString().split('T')[0]
             };
 
@@ -1155,4 +1333,11 @@
             localStorage.setItem('pendingServers', JSON.stringify(pendingServers));
             
             e.target.reset();
-  
+            closeModal('addServerModal');
+            alert('Сервер отправлен на модерацию! Ожидайте одобрения администратора.');
+        });
+
+        // Initialize
+        checkUserLogin();
+            
+            e.target.reset();
