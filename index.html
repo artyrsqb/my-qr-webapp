@@ -968,7 +968,7 @@
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // Sample server data
-        const servers = [
+        const defaultServers = [
             {
                 id: 1,
                 name: "SkyBlock Legends",
@@ -1061,13 +1061,18 @@
             }
         ];
 
+        // Load servers from localStorage or use defaults
+        let storedServers = JSON.parse(localStorage.getItem('servers') || '[]');
+        
+        // If no stored servers, initialize with defaults
+        if (storedServers.length === 0) {
+            localStorage.setItem('servers', JSON.stringify(defaultServers));
+            storedServers = defaultServers;
+        }
+
+        const servers = storedServers;
+
         // Render servers
-        function renderServers(serversToRender) {
-            const grid = document.getElementById('serversGrid');
-            grid.innerHTML = '';
-            
-            serversToRender.forEach(server => {
-                const card = document.createElement('div');
                 card.className = 'server-card';
                 card.setAttribute('data-game', server.gameTag);
                 
